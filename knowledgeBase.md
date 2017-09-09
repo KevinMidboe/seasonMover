@@ -11,11 +11,13 @@ The following is a description of the optimal flow for discovering mediafiles in
      * [Movies](#movies)
      * [Show w/ complete season folder](#show-w-complete-season-folder)
      * [Show with single episode](#show-with-single-episode)
+  * [Scan vs Convert](#scan-vs-convert)
   * [Plex Local Media Assets <a name="user-content-plex-local-media-assets"></a>](#plex-local-media-assets-)
      * [Enable "Local Media Assets"](#enable-local-media-assets)
      * [Extra Subtitle Files](#extra-subtitle-files)
      * [Local Trailers and Extras](#local-trailers-and-extras)
         * [Organized in Subdirectories](#organized-in-subdirectories)
+  * [Alternatives to Run-Options](#alternatives-to-run-options)
 
 ## Detect changes in a directory <a name='detect-changes-in-a-directory'></a>
 There should be a daemon running to check for changes in the hash for a directory. 
@@ -158,15 +160,61 @@ user@hostname:/$ echo 'interstellar.2017' | sha1sum
 ```
 
 ```
-user@hostname:/$ echo 'new.girl.2.17' | sha1sum
-5eac346c21b3ea184a4e688cf14c8d174af12f55
+user@hostname:/$ echo 'new girl.2.17' | sha1sum
+bb1c1339fa4211f65013f3ce36004253cc89fe04
 ```
 
-> Replace all spaces with '.' and separate items with '.'.  
-> This is '.'.join(series_name) and then '.'.join([series_name, season, episode])
+> Separate items with '.'.  
+> That is; '.'.join([series_name, season, episode])
+
+> ```python
+> >>> series_name='new girl'
+  >>>> season=2
+  >>>> episode=17
+  >>>> '.'.join([series_name, str(season), str(episode)])
+    'new girl.2.17'
+> ```
 
 > NB: Episode and season number should NOT have a leading 0 here!
 
+### Hashing episode in python
+
+```python
+show = 'Rick and morty'.lower()
+season = 3
+for ep in range(1,10):
+	itemConcat = '.'.join([show, str(season), str(ep)])
+	hash_object = hashlib.sha1(str.encode(itemConcat))
+	hex_dig = hash_object.hexdigest()
+	print('%s : %s' % (hex_dig, itemConcat))
+```
+
+## What information should a hash index contain?
+For a show item, we would hash the name of the show, season number and episode number. What information do we want to keep about a item?
+
+#### Show episode
+ - The full name of the file.
+ - What show
+ - Season
+ - Episode
+ - [Name of episode]
+
+#### Movie
+ - The full name of the file
+ - Movie name
+ - Year
+
+#### Subtitles
+ - The full name of the file
+ - Language
+ - SDH?
+
+To move the item we just need the hash, and append all the other information. 
+
+## Scan vs Convert <a name='scan-vs-convert'></a>
+We are thinking there should be two main blobs. There should be one for the run cycle, when the new information is found, and one for the elements that have been handled. 
+
+Wait! This would mean that we need to move the information.
 
 
 ## Plex Local Media Assets <a name='plex-local-media-assets'></a>
@@ -228,3 +276,28 @@ Swiss Army Man (2016)/
 │   └── Q and A Session with the Filmmakers (Local).mkv
 └── Swiss.Army.Man.2016.Bluray.1080p.TrueHD-7.1.Atmos.x264.mkv
 ```
+
+## Looking up names for episodes
+The tmdb api [link](https://github.com/dbr/tvdb_api) can get extended information about a episode number. 
+
+```python
+import tvdb_api
+t = tvdb_api.Tvdb()
+episode = t['Rick and morty'][3][4] # get season 1, episode 3 of show
+print(episode['episodename']) # Print episode name
+```
+
+A large stall in the system would be to do a http call to the tvdb api to get the episode name every time we run seasoned. What we could do is when we find a episode from a series we can look for and cache all episode names that are that season for the series. 
+
+This can be saved in the blob in the hash location for the episode. This means we can make a hash table insertion without having the episode yet. 
+
+## Alternatives to Run-Options <a name='alternatives-to-run-options'></a>
+
+seasoned **parse** : Looks through the saved directory and looks for mediafiles to match
+
+ - --dry : should not commit any of the changes, just print them out.
+ - --type : options *movie* | *show* for looking for a specific type of content.
+ - Something to do with subtitles.
+ - Something to do with looking up the name of the episode on tmdb. 
+
+seasoned **discover** : 
