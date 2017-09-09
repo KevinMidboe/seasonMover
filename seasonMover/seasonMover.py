@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: KevinMidboe
 # @Date:   2017-07-11 19:16:23
-# @Last Modified by:   kevinmidboe
-# @Last Modified time: 2017-08-05 16:47:03
+# @Last Modified by:   KevinMidboe
+# @Last Modified time: 2017-08-13 12:12:05
 
 import fire, re, os
 from pprint import pprint
@@ -36,14 +36,14 @@ class seasonMover(object):
 		if m:
 			return re.sub('[eE]', '', m.group(0))
 
-	def findInterval(self, item):
-		if (re.search(r'\((.*)\)', item) is None):
-			raise ValueError('Need to declare an identifier e.g. (1..3) in: \n\t' + item)
+	# def findInterval(self, item):
+	# 	if (re.search(r'\((.*)\)', item) is None):
+	# 		raise ValueError('Need to declare an identifier e.g. (1..3) in: \n\t' + item)
 
-		start = int(re.search('\((\d+)\.\.', item).group(1))
-		end = int(re.search('\.\.(\d+)\)', item).group(1))
+	# 	start = int(re.search('\((\d+)\.\.', item).group(1))
+	# 	end = int(re.search('\.\.(\d+)\)', item).group(1))
 
-		return list(range(start, end+1))
+	# 	return list(range(start, end+1))
 
 	def removeUploadSign(self, file):
 		match = re.search('-[a-zA-Z\[\]\-]*.[a-z]{3}', file)
@@ -84,3 +84,4 @@ class seasonMover(object):
 
 if __name__ == '__main__':
 	fire.Fire(seasonMover)
+	
