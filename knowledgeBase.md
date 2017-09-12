@@ -18,13 +18,14 @@ The following is a description of the optimal flow for discovering mediafiles in
      * [Local Trailers and Extras](#local-trailers-and-extras)
         * [Organized in Subdirectories](#organized-in-subdirectories)
   * [Alternatives to Run-Options](#alternatives-to-run-options)
+  * [Monitor End-to-End Movement of Files](#monitor-end-to-end-movement-of-files)
 
 ## Detect changes in a directory <a name='detect-changes-in-a-directory'></a>
 There should be a daemon running to check for changes in the hash for a directory. 
 
 ## Find the files <a name='find-the-files'></a>
 ```python 
-dir = somedir  
+# dir = somedir
 os.list(dir)
 ```
 What information do we want:
@@ -148,6 +149,69 @@ Twin.Peaks.S03E17.1080p.WEB.H264-STRiFE[rarbg]/
 └── twin.peaks.s03e17.1080p.web.h264-strife.nfo
 ```
 
+
+## Plex Local Media Assets <a name='plex-local-media-assets'></a>
+### Enable "Local Media Assets"
+*Because I use plex and it is per date the leading platfor for multimedia library hosting we have decided to follow its naming scheme.*  
+"Local Media Assets" is an Agent source that loads local media files or embedded metadata for a media item. To do this, ensure the Agent source is enabled and topmost in the list:
+
+ * Launch the Plex Web App
+ * Choose Settings from the top right of the Home screen
+ * Select your Plex Media Server from the horizontal list
+ * Choose Agents
+ * Choose the Library Type and Agent you want to change
+ * Ensure Local Media Assets is checked
+ * Ensure Local Media Assets is topmost in the list
+
+ 
+### Extra Subtitle Files
+Several formats of subtitle files are supported and can be picked up by the Local Media Assets scanner:
+
+* .srt
+* .smi
+* .ssa (or .ass)
+
+Other formats such as VOBSUB, PGS, etc. may work on some Plex Apps but not all. If you use the Universal Transcoder, both VOBSUBS and PGS subtitles will be "burned in" during the transcoding process and shown.
+
+Subtitle files need to be named as follows:
+
+ * `MovieName (Release Date).[Language_Code].ext`
+ * `Movies/MovieName (Release Date).[Language_Code].ext`
+ * `Movies/MovieName (Release Date).[Language_Code].forced.ext`
+ 
+### Local Trailers and Extras
+If you have trailers, interviews, behind the scenes videos, or other "extras" type content for your movies, you can add those.
+
+#### Organized in Subdirectories
+You can organize your local extras into specific subdirectories inside the main directory named for the movie. Extras will be detected and used if named and stored as follows:
+
+* `Movie/MovieName (Release Date)/Extra_Directory_Type/Descriptive_name.ext`
+
+Where `Extra_Directory_Type` is one of:
+
+* Behind The Scenes
+* Deleted Scenes
+* Featurettes
+* Interviews
+* Scenes
+* Shorts
+* Trailers
+
+It is recommended that you provide some sort of descriptive name for the extras filenames.
+
+```
+Swiss Army Man (2016)/
+├── Behind The Scenes
+│   └── Behind the Scenes (Local).mkv
+├── Deleted Scenes
+│   └── Deleted Scenes (Local).mkv
+├── Featurettes
+│   ├── Making Of (Local).mkv
+│   └── Q and A Session with the Filmmakers (Local).mkv
+└── Swiss.Army.Man.2016.Bluray.1080p.TrueHD-7.1.Atmos.x264.mkv
+```
+
+
 ## How to group together items
 Hashes are our friend! We want to take the minimal amount of separatly identifying information and hash it to a index value. This will in effect become a hash table.  
 
@@ -217,66 +281,6 @@ We are thinking there should be two main blobs. There should be one for the run 
 Wait! This would mean that we need to move the information.
 
 
-## Plex Local Media Assets <a name='plex-local-media-assets'></a>
-### Enable "Local Media Assets"
-"Local Media Assets" is an Agent source that loads local media files or embedded metadata for a media item. To do this, ensure the Agent source is enabled and topmost in the list:
-
- * Launch the Plex Web App
- * Choose Settings from the top right of the Home screen
- * Select your Plex Media Server from the horizontal list
- * Choose Agents
- * Choose the Library Type and Agent you want to change
- * Ensure Local Media Assets is checked
- * Ensure Local Media Assets is topmost in the list
-
- 
-### Extra Subtitle Files
-Several formats of subtitle files are supported and can be picked up by the Local Media Assets scanner:
-
-* .srt
-* .smi
-* .ssa (or .ass)
-
-Other formats such as VOBSUB, PGS, etc. may work on some Plex Apps but not all. If you use the Universal Transcoder, both VOBSUBS and PGS subtitles will be "burned in" during the transcoding process and shown.
-
-Subtitle files need to be named as follows:
-
- * `MovieName (Release Date).[Language_Code].ext`
- * `Movies/MovieName (Release Date).[Language_Code].ext`
- * `Movies/MovieName (Release Date).[Language_Code].forced.ext`
- 
-### Local Trailers and Extras
-If you have trailers, interviews, behind the scenes videos, or other "extras" type content for your movies, you can add those.
-
-#### Organized in Subdirectories
-You can organize your local extras into specific subdirectories inside the main directory named for the movie. Extras will be detected and used if named and stored as follows:
-
-* `Movie/MovieName (Release Date)/Extra_Directory_Type/Descriptive_name.ext`
-
-Where `Extra_Directory_Type` is one of:
-
-* Behind The Scenes
-* Deleted Scenes
-* Featurettes
-* Interviews
-* Scenes
-* Shorts
-* Trailers
-
-It is recommended that you provide some sort of descriptive name for the extras filenames.
-
-```
-Swiss Army Man (2016)/
-├── Behind The Scenes
-│   └── Behind the Scenes (Local).mkv
-├── Deleted Scenes
-│   └── Deleted Scenes (Local).mkv
-├── Featurettes
-│   ├── Making Of (Local).mkv
-│   └── Q and A Session with the Filmmakers (Local).mkv
-└── Swiss.Army.Man.2016.Bluray.1080p.TrueHD-7.1.Atmos.x264.mkv
-```
-
 ## Looking up names for episodes
 The tmdb api [link](https://github.com/dbr/tvdb_api) can get extended information about a episode number. 
 
@@ -301,3 +305,28 @@ seasoned **parse** : Looks through the saved directory and looks for mediafiles 
  - Something to do with looking up the name of the episode on tmdb. 
 
 seasoned **discover** : 
+
+
+
+## Monitor End-to-End Movement of Files <a name='monitor-end-to-end-movement-of-files'></a>
+Using watchdog can give us verification that something we wanted to happen acctually has happened. 
+
+`watchdog.events.DirMovedEvent` 
+
+If this is to be used we need a way to check the output of watchdog eventHandler very fast after we have done a action. Such actions may be, but not limited to, renaming a file, creating a directory or moving files from old dir to new.
+
+#### Event queues and emitters
+Event queue can be what we are looking at to verify that an event has happened. [link](https://pythonhosted.org/watchdog/api.html#collections) 
+
+
+```
+class watchdog.observers.api.EventQueue(maxsize=0)
+```
+
+Thread-safe event queue based on a special queue that skips adding the same event (FileSystemEvent) multiple times consecutively. Thus avoiding dispatching multiple event handling calls when multiple identical events are produced quicker than an observer can consume them.
+
+```
+watchdog.observers.api.EventEmitter(event_queue, watch, timeout=1)
+```
+
+Producer thread base class subclassed by event emitters that generate events and populate a queue with them. 
