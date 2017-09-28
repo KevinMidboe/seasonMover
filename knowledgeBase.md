@@ -267,6 +267,7 @@ For a show item, we would hash the name of the show, season number and episode n
  - The full name of the file
  - Movie name
  - Year
+ - Extra?
 
 #### Subtitles
  - The full name of the file
@@ -274,6 +275,28 @@ For a show item, we would hash the name of the show, season number and episode n
  - SDH?
 
 To move the item we just need the hash, and append all the other information. 
+
+### What we also can do with the hash/information problem
+Ok, so the problem is that we really just want one class per folder. That means that having a separate subtitles goes againts this. Me reasoning for having a class pr folder type is that then everything within a hash index could have the same structure. Having everything in a single class means that we only need to do one uniform pass over our tree to execute all the operations needed (move and rename).
+
+#### Show
+```bash
+.
+├── 1c133
+└── f3ce3
+    ├── this.name: New Girl
+    ├── this.season: 2
+    ├── this.episode: 17
+    └── this.objects
+    │   ├── episode:
+    │   │   ├── full name of path
+    │   │   └── [name of the episode]
+    │   └── subtitle:
+    │       ├── full name of path
+    │       ├── language
+    │       └── SDH?
+```
+
 
 ## Scan vs Convert <a name='scan-vs-convert'></a>
 We are thinking there should be two main blobs. There should be one for the run cycle, when the new information is found, and one for the elements that have been handled. 
