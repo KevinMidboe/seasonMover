@@ -1,4 +1,4 @@
-# seasonedGuesser
+# seasonedParser
 The following is a description of the optimal flow for discovering mediafiles in a directory. 
 
 ## Table of Contents
@@ -424,3 +424,48 @@ watchdog.observers.api.EventEmitter(event_queue, watch, timeout=1)
 ```
 
 Producer thread base class subclassed by event emitters that generate events and populate a queue with them. 
+
+
+## As is today
+### Core
+```
+organize_files(path):
+	mediafiles = scan_files(path)
+	
+scan_files(path):
+	checks that it is a directory and that it exsists.
+	for dirpath, dirnames, filenames in os.walk(path):
+		for dirname in list(dirnames):
+			if dirname.startswith('.'):
+				SKIP
+
+		for filename in filenames:
+			checks that it is a valid extension and doesn't start with '.'
+			filepath = os.path.join(dirpath, filename)
+			
+			skips links and old files
+			
+			if filename.endswith(VIDEO_EXTENSION):
+				video = scan_video(filepath)
+				mediafiles.append(video)
+			...
+			
+	return mediafiles
+	
+scan_video(path):
+	check if it is a actual path
+	dirpath, filename = os.path.split(path)
+	parent_path = path.strip(path)
+	# Where sanitize strips and lowers the file so it is easier to guess.
+	return Video.fromguess(filename, parent_path, guessit(sanitize(path)))
+	
+
+> Now we have a list with objects, either episode, subtitle or movie. 
+
+|-> organize_files(path):
+ 		for file in mediafiles:
+ 			hashList.setdefault(file.__hash__(),[]).append(file)
+
+```
+
+## Video
