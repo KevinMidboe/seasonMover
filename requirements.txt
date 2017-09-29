@@ -1,0 +1,2 @@
+guessit==2.1.4
+tvdb_api==2.0
