@@ -130,12 +130,14 @@ def scan_files(path, age=None, archives=True):
                     logging.exception('Error scanning video')
                     continue
             elif archives and filename.endswith(ARCHIVE_EXTENSIONS):  # archive
-                try:
-                    video = scan_archive(filepath)
-                    mediafiles.append(video)
-                except (NotRarFile, RarCannotExec, ValueError):  # pragma: no cover
-                    logging.exception('Error scanning archive')
-                    continue
+                print('archive')
+                pass
+            #    try:
+            #        video = scan_archive(filepath)
+            #        mediafiles.append(video)
+            #    except (NotRarFile, RarCannotExec, ValueError):  # pragma: no cover
+            #        logging.exception('Error scanning archive')
+            #        continue
             elif filename.endswith(SUBTITLE_EXTENSIONS): # subtitle
                try:
                   subtitle = scan_subtitle(filepath)
@@ -153,7 +155,7 @@ def scan_files(path, age=None, archives=True):
 def organize_files(path):
    hashList = {}
    mediafiles = scan_files(path)
-   print(mediafiles)
+   # print(mediafiles)
 
    for file in mediafiles:
         hashList.setdefault(file.__hash__(),[]).append(file)
@@ -252,7 +254,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def main():
     # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    episodePath = '/Volumes/media/tv/Black Mirror/'
+    episodePath = '/media/hdd1/tv/Black Mirror'
 
     t = tvdb_api.Tvdb()
 
