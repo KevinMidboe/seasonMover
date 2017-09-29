@@ -3,7 +3,7 @@
 # @Author: KevinMidboe
 # @Date:   2017-08-26 08:23:18
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-29 12:38:04
+# @Last Modified time: 2017-09-29 13:56:21
 
 from guessit import guessit
 import os
@@ -187,7 +187,6 @@ class Episode():
 
     # THE EP NUMBER IS CONVERTED TO STRING AS A QUICK FIX FOR MULTIPLE NUMBERS IN ONE
     def __repr__(self):
-        print(self.name)
         if self.year is None:
             return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
 
