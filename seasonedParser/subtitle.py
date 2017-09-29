@@ -85,7 +85,7 @@ class Subtitle(object):
         return hashlib.md5("b'{}'".format(str(self.series) + str(self.season) + str(self.episode)).encode()).hexdigest()
 
     def __repr__(self):
-        return '<%s %s [%ix%i]>' % (self.__class__.__name__, self.series, self.season, self.episode)
+        return '<%s %s [%ix%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
 
 
 
