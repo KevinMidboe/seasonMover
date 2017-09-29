@@ -1,25 +1,28 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 # @Author: KevinMidboe
 # @Date:   2017-08-25 23:22:27
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-09 14:57:54
+# @Last Modified time: 2017-09-29 12:35:24
 
 from guessit import guessit
 import os, errno
 import logging
 import tvdb_api
+from pprint import pprint
+
+import env_variables as env
 
 from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
+from utils import sanitize
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(filename=env.logfile, level=logging.INFO)
 
 
 #: Supported archive extensions
 ARCHIVE_EXTENSIONS = ('.rar',)
 
-@profile
 def scan_video(path):
     """Scan a video from a `path`.
 
@@ -37,12 +40,12 @@ def scan_video(path):
     #     raise ValueError('%r is not a valid video extension' % os.path.splitext(path)[1])
 
     dirpath, filename = os.path.split(path)
-    logger.info('Scanning video %r in %r', filename, dirpath)
+    logging.info('Scanning video %r in %r', filename, dirpath)
 
     # guess
     parent_path = path.strip(filename)
-    # video = Video.fromguess(filename, parent_path, guessit(path))
-    video = Video('test')
+    video = Video.fromguess(filename, parent_path, guessit(path))
+    # video = Video('test')
     # guessit(path)
 
     return video
@@ -53,7 +56,7 @@ def scan_subtitle(path):
       raise ValueError('Path does not exist')
 
    dirpath, filename = os.path.split(path)
-   logger.info('Scanning video %r in %r', filename, dirpath)
+   logging.info('Scanning subtitle %r in %r', filename, dirpath)
 
    # guess
    parent_path = path.strip(filename)
@@ -63,7 +66,6 @@ def scan_subtitle(path):
    return subtitle
 
 
-@profile
 def scan_files(path, age=None, archives=True):
     """Scan `path` for videos and their subtitles.
 
@@ -87,12 +89,12 @@ def scan_files(path, age=None, archives=True):
     # walk the path
     mediafiles = []
     for dirpath, dirnames, filenames in os.walk(path):
-        logger.debug('Walking directory %r', dirpath)
+        logging.debug('Walking directory %r', dirpath)
 
         # remove badly encoded and hidden dirnames
         for dirname in list(dirnames):
             if dirname.startswith('.'):
-                logger.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
+                logging.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
                 dirnames.remove(dirname)
 
         # scan for videos
@@ -103,7 +105,7 @@ def scan_files(path, age=None, archives=True):
 
             # skip hidden files
             if filename.startswith('.'):
-                logger.debug('Skipping hidden filename %r in %r', filename, dirpath)
+                logging.debug('Skipping hidden filename %r in %r', filename, dirpath)
                 continue
 
             # reconstruct the file path
@@ -111,12 +113,12 @@ def scan_files(path, age=None, archives=True):
 
             # skip links
             if os.path.islink(filepath):
-                logger.debug('Skipping link %r in %r', filename, dirpath)
+                logging.debug('Skipping link %r in %r', filename, dirpath)
                 continue
 
             # skip old files
             if age and datetime.utcnow() - datetime.utcfromtimestamp(os.path.getmtime(filepath)) > age:
-                logger.debug('Skipping old file %r in %r', filename, dirpath)
+                logging.debug('Skipping old file %r in %r', filename, dirpath)
                 continue
 
             # scan
@@ -125,21 +127,21 @@ def scan_files(path, age=None, archives=True):
                     video = scan_video(filepath)
                     mediafiles.append(video)
                 except ValueError:  # pragma: no cover
-                    logger.exception('Error scanning video')
+                    logging.exception('Error scanning video')
                     continue
             elif archives and filename.endswith(ARCHIVE_EXTENSIONS):  # archive
                 try:
                     video = scan_archive(filepath)
                     mediafiles.append(video)
                 except (NotRarFile, RarCannotExec, ValueError):  # pragma: no cover
-                    logger.exception('Error scanning archive')
+                    logging.exception('Error scanning archive')
                     continue
             elif filename.endswith(SUBTITLE_EXTENSIONS): # subtitle
                try:
                   subtitle = scan_subtitle(filepath)
                   mediafiles.append(subtitle)
                except ValueError: 
-                  logger.exception('Error scanning subtitle')
+                  logging.exception('Error scanning subtitle')
                   continue
             else:  # pragma: no cover
                 raise ValueError('Unsupported file %r' % filename)
@@ -148,7 +150,6 @@ def scan_files(path, age=None, archives=True):
     return mediafiles
 
 
-@profile
 def organize_files(path):
    hashList = {}
    mediafiles = scan_files(path)
@@ -219,12 +220,12 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
     # for subtitle in files:
     #     # check content
     #     if subtitle.name is None:
-    #         logger.error('Skipping subtitle %r: no content', subtitle)
+    #         logging.error('Skipping subtitle %r: no content', subtitle)
     #         continue
 
     #     # check language
     #     if subtitle.language in set(s.language for s in saved_subtitles):
-    #         logger.debug('Skipping subtitle %r: language already saved', subtitle)
+    #         logging.debug('Skipping subtitle %r: language already saved', subtitle)
     #         continue
 
     #     # create subtitle path
@@ -233,7 +234,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
     #         subtitle_path = os.path.join(directory, os.path.split(subtitle_path)[1])
 
     #     # save content as is or in the specified encoding
-    #     logger.info('Saving %r to %r', subtitle, subtitle_path)
+    #     logging.info('Saving %r to %r', subtitle, subtitle_path)
     #     if encoding is None:
     #         with io.open(subtitle_path, 'wb') as f:
     #             f.write(subtitle.content)
@@ -250,12 +251,13 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 
 def main():
-   episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
+    # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
+    episodePath = '/Volumes/media/tv/Black Mirror/'
 
-   t = tvdb_api.Tvdb()
+    t = tvdb_api.Tvdb()
 
-   hashList = organize_files(episodePath)
-   pprint(hashList)
+    hashList = organize_files(episodePath)
+    pprint(hashList)
 
 
 
