@@ -149,6 +149,26 @@ Twin.Peaks.S03E17.1080p.WEB.H264-STRiFE[rarbg]/
 └── twin.peaks.s03e17.1080p.web.h264-strife.nfo
 ```
 
+### Other example outputs that need to be handled
+```
+...
+Baby Driver (2017)
+Room (2015)
+Sample
+Proof
+the.house.2017.1080p.bluray.x264-geckos.sfv
+the.house.2017.1080p.bluray.x264-geckos.nfo
+the.house.2017.1080p.bluray.x264-geckos.jpg
+Subs
+The.House.2017.1080p.BluRay.x264-GECKOS[EtHD].mkv
+To keep us going please read.txt
+the.book.of.henry.2017.1080p.bluray.x264-geckos.sfv
+the.book.of.henry.2017.1080p.bluray.x264-geckos.nfo
+the.book.of.henry.2017.1080p.bluray.x264-geckos.jpg
+The.Book.Of.Henry.2017.1080p.BluRay.x264-GECKOS[EtHD].mkv
+```
+
+
 
 ## Plex Local Media Assets <a name='plex-local-media-assets'></a>
 ### Enable "Local Media Assets"
@@ -279,24 +299,6 @@ To move the item we just need the hash, and append all the other information.
 ### What we also can do with the hash/information problem
 Ok, so the problem is that we really just want one class per folder. That means that having a separate subtitles goes againts this. Me reasoning for having a class pr folder type is that then everything within a hash index could have the same structure. Having everything in a single class means that we only need to do one uniform pass over our tree to execute all the operations needed (move and rename).
 
-#### Show
-```bash
-.
-├── 1c133
-└── f3ce3
-    ├── this.name: New Girl
-    ├── this.season: 2
-    ├── this.episode: 17
-    └── this.objects
-    │   ├── episode:
-    │   │   ├── full name of path
-    │   │   └── [name of the episode]
-    │   └── subtitle:
-    │       ├── full name of path
-    │       ├── language
-    │       └── SDH?
-```
-
 
 ## Scan vs Convert <a name='scan-vs-convert'></a>
 We are thinking there should be two main blobs. There should be one for the run cycle, when the new information is found, and one for the elements that have been handled. 
@@ -318,6 +320,72 @@ A large stall in the system would be to do a http call to the tvdb api to get th
 
 This can be saved in the blob in the hash location for the episode. This means we can make a hash table insertion without having the episode yet. 
 
+## How to save our information
+So we have decided that to increase the search time we save each node in our library with a hash key index. Within this index we want to save the values for the node and a list of objects. These objects are all the media items that are to be present in the directory. 
+
+### Concept: 
+```bash
+.
+├── 1c133
+└── f3ce3
+    ├── this.name: New Girl
+    ├── this.season: 2
+    ├── this.episode: 17
+    ├── [this.name of the episode]
+    └── this.objects
+    │   ├── episode:
+    │   │   ├── full name of path
+    │   └── subtitle:
+    │       ├── full name of path
+    │       ├── language
+    │       └── SDH?
+```
+
+These database will be structured such that:  
+
+ 1. The leaf nodes will be the physcial files. 
+ -  Their parents will a type object (movie | episode | subtitle)
+
+ 
+A thing to notice is that choosing the structure of the database has much effect on how this parser will work. If we choose a django backend we get a lot of features, but everything will be accessed in a structure that will not be totally transparent. I hope that this will be a barebones application that will be fast and easy to run. I would be helpfull to save everything as json objects, because then we could have one key hash and all the information behind in a format that could easily be translated to objects in python. I think the simplest way to do this and still follow the original guidelines of this project we will need a sqlite3 database that has a (movie/show)_content table where we have all items' key be the hash that we want to use. Then it's variables would be it's hash values as well as other information that is the same for all elements of it's children. It would have a field that refers to a the different leaf node types *movie/show/subtitle*. How this will be saved I am not yet sure. 
+
+
+## Going all inn on django!
+After much consideration I think we want to go with django as our db manager. This is because we will be doing a lot of the operations from python and it is the easiest way I know of to work with databases from python. Since django lets us decide what database format we want to use, we can use sqlite3 so that our node api also easily can retrieve information from our database if needed. 
+
+### Structure of our django app
+
+ * ShowsItem:  
+	* hash_index: char(max=200, PRIMARY KEY)
+	* show_name: char(max=200)
+	* season: int(2)
+	* episode: int(2)
+	* episode_name: char(max=200) null=True
+ 
+* Episode:
+ * path: char(max=200) 
+
+* Subtitle:
+ * path: char(max=200)
+ * language: char(2)
+ * sdh: boolean()
+
+
+
+## The main parts of seasonedParse
+
+### Parser
+We need a parser that indexes a given directory and in some way finds the identifying features of a element and selects a type for the item to be.
+
+### Inserter
+When all the items have been looked at and added to a list, we want to insert all the items into our database on the hash key.
+
+### Mover
+After all the items have been added we want to commit our decisions and move the files to their correct location. 
+
+Need to do more thinking about how it is decided when a item is in the correct location and when it has been moved. Can check that the file location matches the thing we want. But then because we haven't saved anything about the structure of the parent folders, we need to construct the wanted path every time we want to verify a item.
+
+
 ## Alternatives to Run-Options <a name='alternatives-to-run-options'></a>
 
 seasoned **parse** : Looks through the saved directory and looks for mediafiles to match
@@ -326,6 +394,9 @@ seasoned **parse** : Looks through the saved directory and looks for mediafiles 
  - --type : options *movie* | *show* for looking for a specific type of content.
  - Something to do with subtitles.
  - Something to do with looking up the name of the episode on tmdb. 
+
+seasoned **add** : This would be how you say you want to look at a folder. 
+ > This could be a interesting feature, the database does not care what the folder is, beacuse it is looking only at the leaf files. That means if we give it a single season folder or a complete root shows directory it will look for all the leafs add to database based on the names. 
 
 seasoned **discover** : 
 
