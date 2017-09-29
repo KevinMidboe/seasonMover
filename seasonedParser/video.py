@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 # @Author: KevinMidboe
 # @Date:   2017-08-26 08:23:18
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-09 14:46:13
+# @Last Modified time: 2017-09-29 12:38:04
 
 from guessit import guessit
 import os
@@ -183,7 +183,7 @@ class Episode():
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
     def __hash__(self):
-         return hashlib.md5("b'{}'".format(self.series + str(self.season) + str(self.episode)).encode()).hexdigest()
+         return hashlib.md5("b'{}'".format(self.series.lower() + str(self.season) + str(self.episode)).encode()).hexdigest()
 
     def __repr__(self):
         if self.year is None:
