@@ -183,13 +183,15 @@ class Episode():
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
     def __hash__(self):
-         return hashlib.md5("b'{}'".format(self.series.lower() + str(self.season) + str(self.episode)).encode()).hexdigest()
+         return hashlib.md5("b'{}'".format(str(self.series) + str(self.season) + str(self.episode)).encode()).hexdigest()
 
+    # THE EP NUMBER IS CONVERTED TO STRING AS A QUICK FIX FOR MULTIPLE NUMBERS IN ONE
     def __repr__(self):
+        print(self.name)
         if self.year is None:
-            return '<%s [%r, %dx%d]>' % (self.__class__.__name__, self.series, self.season, self.episode)
+            return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
 
-        return '<%s [%r, %d, %dx%d]>' % (self.__class__.__name__, self.series, self.year, self.season, self.episode)
+        return '<%s [%r, %d, %dx%s]>' % (self.__class__.__name__, self.series, self.year, self.season, str(self.episode))
 
 		
 
