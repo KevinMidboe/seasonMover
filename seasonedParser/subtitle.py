@@ -4,7 +4,6 @@ import logging
 import os
 
 import chardet
-import pysrt
 import hashlib
 
 from video import Episode, Movie
@@ -16,7 +15,7 @@ from langdetect import detect
 logger = logging.getLogger(__name__)
 
 #: Subtitle extensions
-SUBTITLE_EXTENSIONS = ('.srt', '.sub', '.smi', '.txt', '.ssa', '.ass', '.mpl')
+SUBTITLE_EXTENSIONS = ('.srt', '.sub')
 
 
 class Subtitle(object):
@@ -59,7 +58,6 @@ class Subtitle(object):
 
     @classmethod
     def fromguess(cls, name, parent_path, guess):
-        print(guess)
         if not (guess['type'] == 'movie' or guess['type'] == 'episode'):
             raise ValueError('The guess must be an episode guess')
 
@@ -84,7 +82,7 @@ class Subtitle(object):
         return language
 
     def __hash__(self):
-        return hashlib.md5("b'{}'".format(self.series.lower() + str(self.season) + str(self.episode)).encode()).hexdigest()
+        return hashlib.md5("b'{}'".format(str(self.series) + str(self.season) + str(self.episode)).encode()).hexdigest()
 
     def __repr__(self):
         return '<%s %s [%ix%i]>' % (self.__class__.__name__, self.series, self.season, self.episode)
