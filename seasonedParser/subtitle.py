@@ -59,7 +59,8 @@ class Subtitle(object):
 
     @classmethod
     def fromguess(cls, name, parent_path, guess):
-        if not guess['type'] == 'movie' or guess['type'] == 'episode':
+        print(guess)
+        if not (guess['type'] == 'movie' or guess['type'] == 'episode'):
             raise ValueError('The guess must be an episode guess')
 
         if 'title' not in guess:
@@ -83,7 +84,7 @@ class Subtitle(object):
         return language
 
     def __hash__(self):
-        return hashlib.md5("b'{}'".format(self.series + str(self.season) + str(self.episode)).encode()).hexdigest()
+        return hashlib.md5("b'{}'".format(self.series.lower() + str(self.season) + str(self.episode)).encode()).hexdigest()
 
     def __repr__(self):
         return '<%s %s [%ix%i]>' % (self.__class__.__name__, self.series, self.season, self.episode)
