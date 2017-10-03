@@ -254,7 +254,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def main():
     # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    episodePath = '/media/hdd1/tv/Black Mirror'
+    episodePath = '/media/hdd1/tv/'
 
     t = tvdb_api.Tvdb()
 

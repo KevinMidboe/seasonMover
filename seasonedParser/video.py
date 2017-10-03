@@ -188,9 +188,9 @@ class Episode():
     # THE EP NUMBER IS CONVERTED TO STRING AS A QUICK FIX FOR MULTIPLE NUMBERS IN ONE
     def __repr__(self):
         if self.year is None:
-            return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
+            return '<%s [%r, %sx%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
 
-        return '<%s [%r, %d, %dx%s]>' % (self.__class__.__name__, self.series, self.year, self.season, str(self.episode))
+        return '<%s [%r, %d, %sx%s]>' % (self.__class__.__name__, self.series, self.year, self.season, str(self.episode))
 
 		
 
