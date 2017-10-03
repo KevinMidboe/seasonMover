@@ -469,3 +469,99 @@ scan_video(path):
 ```
 
 ## Video
+
+
+## Runtimes
+At commit #30 we are walking through the directory with the function shown in core above. A run through The Office US of 201 episodes gives us a total runtime of 17.716. Ideas of what is slowing down the runtime:
+
+ - Walking through the entire directory tree.
+ - Checking that it is a folder that exists.
+ - Guessing the episode name, number and info with the guessit library.
+ - Langdetect of a subtitle file. 
+
+```
+Only scan: real    0m0.745s
+Only subs: real    0m4.273s
+Only videos: real    0m13.280s
+```
+
+Clearly something happening in video that takes time. 
+> Also more video objects that subs
+
+## Moving away from guessit
+I wanted to check how accurate hits we could get with regex. The test is to compare the results from a simple reqex function with the output of guessit. Our code is the following:
+
+```
+def removeLeadingZero(number):
+    stringedNumber = str(number)
+    if (len(stringedNumber) > 1 and stringedNumber[0] == '0'):
+        return int(stringedNumber[1:])
+    return int(number)
+    
+class episode(object):
+    def __init__(self, path):
+        self.path = path
+        self.season = self.getSeasonNumber()
+        self.episode = self.getEpisodeNumber()
+
+    def getSeasonNumber(self):
+        m = re.search('[sS][0-9]{1,2}', self.path)
+        if m:
+            seasonNumber = re.sub('[sS]', '', m.group(0))
+            return removeLeadingZero(seasonNumber)
+
+    def getEpisodeNumber(self):
+        m = re.search('[eE][0-9]{1,2}', self.path)
+        if m:
+            episodeNumber = re.sub('[eE]', '', m.group(0))
+            return removeLeadingZero(episodeNumber)
+```
+
+With this we got: 
+
+```
+seasonedParser:$ time ./scandir.py '/mnt/mainframe/shows/'
+Total: 5926, missed was: 33
+
+real    2m3.560s
+user    1m43.832s
+sys     0m0.840s
+```
+
+Our main misses where episodes with multiple episodes within. Examples follow:
+
+| Resolved | Filename | Manual guess | Reason for mismatch |
+| --- | --- | --- | --- |
+|[ ]| The.Office S03E24&25 - The Job [720p].mkv | 3 : 24 | Double episode |
+|[ ]| Seinfeld.S07E21E22.The.Bottle.Deposit.720p.WEBrip.AAC.EN-SUB.x264-[MULVAcoded].mkv | 7 : 21 | Double episode |
+|[ ]| Friends S10E17 E18.mkv | 10 : 17 | Double episode with spacing |
+|[x]| S00E121.The.Seinfeld.Story.mkv | 0 : 12 | Special episode |
+|[ ]| Brooklyn.Nine-Nine.S04E11-E12.The.Fugitive.Pt.1-2.1080p.WEB-DL.DD5.1.H264.mkv | 4 : 11 | Double episode |
+|[ ]| Greys.Anatomy.S06E01.E02.720p.HDTV.x264.srt | 6 : 1 | Double episode |
+|[ ]| Its.Always.Sunny.In.Philadelphia.S04E05E06.DSR.XviD-NoTV.avi | 4 : 5 | Multiple episode |
+|[ ]| Chicago.PD.S02E20.Law.and.Order.SVU.S16E20.720p.HDTV.X264-DIMENSION[rarbg].mkv | 2 : 20 | Guessed wrong part |
+|[ ]| 03x16 - The Excelsior Acquisition.avi | None | Separated by x |
+|[ ]| new.girl.421.hdtv-lol.mp4 | None | No s or ep id chars
+
+
+#### Excepts longer episode number 
+Except longer episode number, see *S00E121*.
+
+```
+def getEpisodeNumber(self):
+        m = re.search('[eE][0-9]{1,3}', self.path)
+        if m:
+            episodeNumber = re.sub('[eE]', '', m.group(0))
+            return removeLeadingZero(episodeNumber)
+```
+
+Now we got 4 less misses
+
+```
+seasonedParser:$ time ./scandir.py '/mnt/mainframe/shows/'
+Total: 5926, missed was: 29
+
+real    2m0.766s
+user    1m41.482s
+sys     0m0.851s
+```
