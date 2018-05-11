@@ -565,3 +565,6 @@ real    2m0.766s
 user    1m41.482s
 sys     0m0.851s
 ```
+
+
+Keep nfo files?

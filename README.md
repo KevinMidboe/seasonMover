@@ -17,3 +17,13 @@ There are some settings that need to be set for seasonedParser to be able to fin
 In your download client set a incomplete folder and a complete directory. This will allow seasonedParser to only parse items that have been completely downloaded.
 
 *TODO:* Monitor multiple folders at the same time.  
+
+## Run  
+There are many run commands for this, but here is a list of the current working run commands for this project.
+
+```bash
+ user@host:$ ~/seasonedParser/./seasonedMover.py move 'The.Big.Bang.Theory.S11E(7..14).720p.x264.mkv' '/mnt/mainframe/shows/The Big Bang Theory/The Big Bang Theory S11E'
+```
+
+Here the first parameter is our move command, which in turn calls motherMover. The second parameter is what we want the filenames to be called. Notice the (num1..num2), this is to create a range for all the episodes we want to move. The last parameter is the path we want to move our content.
+ > This will be done automatically by the parser based on the info in the media items name, but it is nice to have a manual command.
