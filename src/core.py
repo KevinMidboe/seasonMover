@@ -39,10 +39,10 @@ def search_external_subtitles(path, directory=None):
             try:
                 language = Language.fromietf(language_code)
             except (ValueError, LanguageReverseError):
-                logger.error('Cannot parse language code %r', language_code)
+                logging.error('Cannot parse language code %r', language_code)
 
         subtitles[p] = language
-    logger.debug('Found subtitles %r', subtitles)
+    logging.debug('Found subtitles %r', subtitles)
 
     return subtitles
 
@@ -266,14 +266,14 @@ def main():
     videos = []
     ignored_videos = []
     errored_paths = []
-    logger.debug('Collecting path %s', path)
+    logging.debug('Collecting path %s', path)
 
     # non-existing
     if not os.path.exists(path):
         try:
             video = Video.fromname(path)
         except:
-            logger.exception('Unexpected error while collecting non-existing path %s', path)
+            logging.exception('Unexpected error while collecting non-existing path %s', path)
             errored_paths.append(path)
         if not force:
             video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
@@ -285,7 +285,7 @@ def main():
         try:
             scanned_videos = scan_videos(path)
         except:
-            logger.exception('Unexpected error while collecting directory path %s', path)
+            logging.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
         for video in scanned_videos:
             if not force:
@@ -297,7 +297,7 @@ def main():
     try:
         video = scan_video(path)
     except:
-        logger.exception('Unexpected error while collecting path %s', path)
+        logging.exception('Unexpected error while collecting path %s', path)
         errored_paths.append(path)
     if not force:
         video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
