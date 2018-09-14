@@ -275,12 +275,10 @@ def main():
         except:
             logger.exception('Unexpected error while collecting non-existing path %s', path)
             errored_paths.append(path)
-            continue
         if not force:
             video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
         # refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
         videos.append(video)
-        continue
 
     # directories
     if os.path.isdir(path):
@@ -289,13 +287,11 @@ def main():
         except:
             logger.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
-            continue
         for video in scanned_videos:
             if not force:
                 video.subtitle_languages |= set(search_external_subtitles(video.name,
                                                                           directory=path).values())
             videos.append(video)
-        continue
 
     # other inputs
     try:
@@ -303,7 +299,6 @@ def main():
     except:
         logger.exception('Unexpected error while collecting path %s', path)
         errored_paths.append(path)
-        continue
     if not force:
         video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
     
