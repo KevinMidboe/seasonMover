@@ -58,7 +58,7 @@ def scan_video(path):
     if not os.path.exists(path):
         raise ValueError('Path does not exist')
 
-    check video extension
+    # check video extension
     if not path.endswith(VIDEO_EXTENSIONS):
         raise ValueError('%r is not a valid video extension' % os.path.splitext(path)[1])
 
@@ -118,7 +118,7 @@ def scan_videos(path):
         # scan for videos
         for filename in filenames:
             # filter on videos and archives
-            if not (filename.endswith(VIDEO_EXTENSIONS) or archives and filename.endswith(ARCHIVE_EXTENSIONS)):
+            if not (filename.endswith(VIDEO_EXTENSIONS) or filename.endswith(ARCHIVE_EXTENSIONS)):
                 continue
 
             # skip hidden files
@@ -251,7 +251,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def main():
     # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    path = '/mnt/rescue/'
+    path = '/mnt/rescue/#137101383'
 
     # t = tvdb_api.Tvdb()
 
