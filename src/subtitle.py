@@ -9,7 +9,7 @@ import hashlib
 from video import Episode, Movie
 from utils import sanitize
 
-from langdetect import detect
+# from langdetect import detect
 
 
 logger = logging.getLogger(__name__)
