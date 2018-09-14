@@ -6,6 +6,7 @@
 # @Last Modified time: 2017-09-29 12:35:24
 
 from guessit import guessit
+from babelfish import Language, LanguageReverseError
 import os, errno
 import logging
 import tvdb_api
@@ -251,7 +252,9 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def main():
     # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    path = '/mnt/rescue/#137101383'
+    path = '/mnt/rescue/'
+    # hash_path = input('Hash: ')
+    # path += hash_path
 
     # t = tvdb_api.Tvdb()
 
@@ -303,6 +306,9 @@ def main():
         video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
     
     videos.append(video)
+
+    for video in videos:
+        pprint(video)
 
 
 if __name__ == '__main__':
