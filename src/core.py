@@ -258,8 +258,56 @@ def main():
     # hashList = organize_files(episodePath)
     # pprint(hashList)
 
-    videos = scan_videos(path)
-    pprint(videos)
+    # videos = scan_videos(path)
+    # pprint(videos)
+
+    force = False
+
+    videos = []
+    ignored_videos = []
+    errored_paths = []
+    logger.debug('Collecting path %s', path)
+
+    # non-existing
+    if not os.path.exists(path):
+        try:
+            video = Video.fromname(path)
+        except:
+            logger.exception('Unexpected error while collecting non-existing path %s', path)
+            errored_paths.append(path)
+            continue
+        if not force:
+            video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
+        # refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
+        videos.append(video)
+        continue
+
+    # directories
+    if os.path.isdir(path):
+        try:
+            scanned_videos = scan_videos(path)
+        except:
+            logger.exception('Unexpected error while collecting directory path %s', path)
+            errored_paths.append(path)
+            continue
+        for video in scanned_videos:
+            if not force:
+                video.subtitle_languages |= set(search_external_subtitles(video.name,
+                                                                          directory=path).values())
+            videos.append(video)
+        continue
+
+    # other inputs
+    try:
+        video = scan_video(path)
+    except:
+        logger.exception('Unexpected error while collecting path %s', path)
+        errored_paths.append(path)
+        continue
+    if not force:
+        video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
+    
+    videos.append(video)
 
 
 if __name__ == '__main__':
