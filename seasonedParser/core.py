@@ -3,10 +3,10 @@
 # @Author: KevinMidboe
 # @Date:   2017-08-25 23:22:27
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-29 12:35:24
+# @Last Modified time: 2018-05-13 20:54:17
 
 from guessit import guessit
-import os, errno
+import os, errno,sys
 import logging
 import tvdb_api
 from pprint import pprint
@@ -19,6 +19,7 @@ from utils import sanitize
 
 logging.basicConfig(filename=env.logfile, level=logging.INFO)
 
+from datetime import datetime
 
 #: Supported archive extensions
 ARCHIVE_EXTENSIONS = ('.rar',)
@@ -45,7 +46,7 @@ def scan_video(path):
     # guess
     parent_path = path.strip(filename)
     video = Video.fromguess(filename, parent_path, guessit(path))
-    # video = Video('test')
+    # video = Video(filename)
     # guessit(path)
 
     return video
@@ -86,6 +87,8 @@ def scan_files(path, age=None, archives=True):
     if not os.path.isdir(path):
         raise ValueError('Path is not a directory')
 
+    name_dict = {}
+
     # walk the path
     mediafiles = []
     for dirpath, dirnames, filenames in os.walk(path):
@@ -99,11 +102,9 @@ def scan_files(path, age=None, archives=True):
 
         # scan for videos
         for filename in filenames:
-            # filter on videos and archives
             if not (filename.endswith(VIDEO_EXTENSIONS) or filename.endswith(SUBTITLE_EXTENSIONS) or archives and filename.endswith(ARCHIVE_EXTENSIONS)):
                 continue
 
-            # skip hidden files
             if filename.startswith('.'):
                 logging.debug('Skipping hidden filename %r in %r', filename, dirpath)
                 continue
@@ -116,16 +117,19 @@ def scan_files(path, age=None, archives=True):
                 logging.debug('Skipping link %r in %r', filename, dirpath)
                 continue
 
-            # skip old files
-            if age and datetime.utcnow() - datetime.utcfromtimestamp(os.path.getmtime(filepath)) > age:
-                logging.debug('Skipping old file %r in %r', filename, dirpath)
-                continue
-
             # scan
             if filename.endswith(VIDEO_EXTENSIONS):  # video
                 try:
                     video = scan_video(filepath)
+                    # try:
+                    #     name_dict[video.series] += 1
+                    # except KeyError:
+                    #     name_dict[video.series] = 0
+                    # except:
+                    #     print('video did not have attrib series')
+                    #     pass
                     mediafiles.append(video)
+
                 except ValueError:  # pragma: no cover
                     logging.exception('Error scanning video')
                     continue
@@ -138,24 +142,26 @@ def scan_files(path, age=None, archives=True):
             #    except (NotRarFile, RarCannotExec, ValueError):  # pragma: no cover
             #        logging.exception('Error scanning archive')
             #        continue
-            elif filename.endswith(SUBTITLE_EXTENSIONS): # subtitle
-               try:
-                  subtitle = scan_subtitle(filepath)
-                  mediafiles.append(subtitle)
-               except ValueError: 
-                  logging.exception('Error scanning subtitle')
-                  continue
+            # elif filename.endswith(SUBTITLE_EXTENSIONS): # subtitle
+            #     try:
+            #         subtitle = scan_subtitle(filepath)
+            #         mediafiles.append(subtitle)
+            #     except ValueError: 
+            #         logging.exception('Error scanning subtitle')
+            #         continue
             else:  # pragma: no cover
-                raise ValueError('Unsupported file %r' % filename)
+                print('Skipping unsupported file {}'.format(filename))
+                # raise ValueError('Unsupported file %r' % filename)
 
 
+    pprint(name_dict)
     return mediafiles
 
 
 def organize_files(path):
    hashList = {}
    mediafiles = scan_files(path)
-   # print(mediafiles)
+   print(mediafiles)
 
    for file in mediafiles:
         hashList.setdefault(file.__hash__(),[]).append(file)
@@ -251,10 +257,15 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
     # return saved_subtitles
 
+def stringTime():
+    return str(datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
+
 
 def main():
     # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    episodePath = '/media/hdd1/tv/'
+    episodePath = '/Volumes/mainframe/shows/Black Mirror/Black Mirror Season 01/'
+    episodePath = '/Volumes/mainframe/shows/The.Voice.S14E24.720p.WEB.x264-TBS[rarbg]'
+    episodePath = '/Volumes/mainframe/incomplete'
 
     t = tvdb_api.Tvdb()
 
