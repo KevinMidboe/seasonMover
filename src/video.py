@@ -78,14 +78,14 @@ class Video(object):
         return timedelta()
 
     @classmethod
-    def fromguess(cls, name, parent_path, guess):
+    def fromguess(cls, name, guess):
         """Create an :class:`Episode` or a :class:`Movie` with the given `name` based on the `guess`.
         :param str name: name of the video.
         :param dict guess: guessed data.
         :raise: :class:`ValueError` if the `type` of the `guess` is invalid
         """
         if guess['type'] == 'episode':
-            return Episode.fromguess(name, parent_path, guess)
+            return Episode.fromguess(name, guess)
 
         if guess['type'] == 'movie':
             return Movie.fromguess(name, guess)
