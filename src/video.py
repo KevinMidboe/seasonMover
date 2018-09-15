@@ -28,14 +28,20 @@ class Video(object):
     :param str video_codec: codec of the video stream.
     :param str audio_codec: codec of the main audio stream.
     :param str imdb_id: IMDb id of the video.
-    :param dict hashes: hashes of the video file by provider names.
+    :param dict name_hash: hashes of the video file by provider names.
     :param int size: size of the video file in bytes.
     :param set subtitle_languages: existing subtitle languages.
     """
-    def __init__(self, name, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 imdb_id=None, hashes=None, size=None, subtitle_languages=None):
+    def __init__(self, name, name_hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
+                 imdb_id=None, subtitle_languages=None):
         #: Name or path of the video
         self.name = name
+
+        #: Hashes of the video file by provider names
+        self.name_hash = name_hash
+
+        #: Size of the video file in bytes
+        self.size = size
 
         #: Format of the video (HDTV, WEB-DL, BluRay, ...)
         self.format = format
@@ -54,12 +60,6 @@ class Video(object):
 
         #: IMDb id of the video
         self.imdb_id = imdb_id
-
-        #: Hashes of the video file by provider names
-        self.hashes = hashes or {}
-
-        #: Size of the video file in bytes
-        self.size = size
 
         #: Existing subtitle languages
         self.subtitle_languages = subtitle_languages or set()
