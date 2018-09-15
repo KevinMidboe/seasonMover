@@ -259,7 +259,7 @@ def scan_folder(path):
 
         video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
         
-        refine(video, episode_refiners=None, movie_refiners=None, embedded_subtitles=not force)
+        refine(video)
         videos.append(video)
 
     # directories
@@ -274,7 +274,7 @@ def scan_folder(path):
         for video in scanned_videos:
             video.subtitle_languages |= set(search_external_subtitles(video.name,
                                                                           directory=path).values())
-            refine(video, episode_refiners=None, movie_refiners=None, embedded_subtitles=not force)
+            refine(video)
             videos.append(video)
 
     return videos
