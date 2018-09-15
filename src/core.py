@@ -219,7 +219,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
         print()
 
 
-    def refine(video, episode_refiners=None, movie_refiners=None, **kwargs):
+def refine(video, episode_refiners=None, movie_refiners=None, **kwargs):
     """Refine a video using :ref:`refiners`.
     .. note::
         Exceptions raised in refiners are silently passed and logged.
@@ -288,7 +288,7 @@ def main():
     # hashList = organize_files(episodePath)
     # pprint(hashList)
 
-    videos = scan_folder()
+    videos = scan_folder(path)
     for video in videos:
         pprint(video)
 
