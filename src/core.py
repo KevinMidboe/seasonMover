@@ -7,6 +7,7 @@
 
 from guessit import guessit
 from babelfish import Language, LanguageReverseError
+from hashids import Hashids
 import os, errno
 import logging
 import tvdb_api
@@ -67,7 +68,15 @@ def scan_video(path):
     logging.info('Scanning video %r in %r', filename, dirpath)
 
     # guess
-    video = Video.fromguess(path, guessit(path))
+    video = Video.fromguess(path, filename, guessit(path))
+
+    # size
+    video.size = os.path.getsize(path)
+
+    # hash of name
+    hashids = Hashids(min_length=16)
+    hashid = hashids.encode(path)
+    video.name_hash = name_hash
 
     return video
 
@@ -210,6 +219,83 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
         print()
 
 
+    def refine(video, episode_refiners=None, movie_refiners=None, **kwargs):
+    """Refine a video using :ref:`refiners`.
+    .. note::
+        Exceptions raised in refiners are silently passed and logged.
+    :param video: the video to refine.
+    :type video: :class:`~subliminal.video.Video`
+    :param tuple episode_refiners: refiners to use for episodes.
+    :param tuple movie_refiners: refiners to use for movies.
+    :param \*\*kwargs: additional parameters for the :func:`~subliminal.refiners.refine` functions.
+    """
+    refiners = ()
+    if isinstance(video, Episode):
+        refiners = episode_refiners or ('metadata')
+    elif isinstance(video, Movie):
+        refiners = movie_refiners or ('metadata')
+    for refiner in refiners:
+        logger.info('Refining video with %s', refiner)
+        try:
+            print(refiner)
+            refiner_manager[refiner].plugin(video, **kwargs)
+        except:
+            logger.exception('Failed to refine video')
+
+def scan_folder(path):
+    videos = []
+    ignored_videos = []
+    errored_paths = []
+    logging.debug('Collecting path %s', path)
+
+    # non-existing
+    if not os.path.exists(path):
+        try:
+            video = Video.fromname(path)
+        except:
+            logging.exception('Unexpected error while collecting non-existing path %s', path)
+            errored_paths.append(path)
+
+        video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
+        
+        refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
+        videos.append(video)
+
+    # directories
+    if os.path.isdir(path):
+        try:
+            scanned_videos = scan_videos(path)
+        except:
+            logging.exception('Unexpected error while collecting directory path %s', path)
+            errored_paths.append(path)
+
+        for video in scanned_videos:
+            video.subtitle_languages |= set(search_external_subtitles(video.name,
+                                                                          directory=path).values())
+            refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
+            videos.append(video)
+
+    return videos
+
+def main():
+    path = '/mnt/rescue/'
+    # hash_path = input('Hash: ')
+    # path += hash_path
+
+    # t = tvdb_api.Tvdb()
+
+    # hashList = organize_files(episodePath)
+    # pprint(hashList)
+
+    videos = scan_folder()
+    for video in videos:
+        pprint(video)
+
+
+if __name__ == '__main__':
+    main()
+
+
     # for hash in files:
     #   hashIndex = [files[hash]]
     #   for hashItems in hashIndex:
@@ -248,68 +334,3 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
     #         break
 
     # return saved_subtitles
-
-
-def main():
-    # episodePath = '/Volumes/media/tv/Black Mirror/Black Mirror Season 01/'
-    path = '/mnt/rescue/'
-    # hash_path = input('Hash: ')
-    # path += hash_path
-
-    # t = tvdb_api.Tvdb()
-
-    # hashList = organize_files(episodePath)
-    # pprint(hashList)
-
-    # videos = scan_videos(path)
-    # pprint(videos)
-
-    force = False
-
-    videos = []
-    ignored_videos = []
-    errored_paths = []
-    logging.debug('Collecting path %s', path)
-
-    # non-existing
-    if not os.path.exists(path):
-        try:
-            video = Video.fromname(path)
-        except:
-            logging.exception('Unexpected error while collecting non-existing path %s', path)
-            errored_paths.append(path)
-        if not force:
-            video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
-        # refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
-        videos.append(video)
-
-    # directories
-    if os.path.isdir(path):
-        try:
-            scanned_videos = scan_videos(path)
-        except:
-            logging.exception('Unexpected error while collecting directory path %s', path)
-            errored_paths.append(path)
-        for video in scanned_videos:
-            if not force:
-                video.subtitle_languages |= set(search_external_subtitles(video.name,
-                                                                          directory=path).values())
-            videos.append(video)
-
-    # other inputs
-    try:
-        video = scan_video(path)
-    except:
-        logging.exception('Unexpected error while collecting path %s', path)
-        errored_paths.append(path)
-    if not force:
-        video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
-    
-    videos.append(video)
-
-    for video in videos:
-        pprint(video)
-
-
-if __name__ == '__main__':
-    main()

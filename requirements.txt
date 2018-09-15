@@ -1,2 +1,4 @@
 guessit==2.1.4
 tvdb_api==2.0
+hashids==1.2.0
+enzyme>=0.4.1
