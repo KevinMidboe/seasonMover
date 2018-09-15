@@ -17,7 +17,7 @@ import env_variables as env
 
 from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
-from utils import sanitize
+from utils import sanitize, refine
 
 logging.basicConfig(filename=env.logfile, level=logging.INFO)
 
@@ -68,7 +68,7 @@ def scan_video(path):
     logging.info('Scanning video %r in %r', filename, dirpath)
 
     # guess
-    video = Video.fromguess(path, filename, guessit(path))
+    video = Video.fromguess(path, guessit(path))
 
     # size
     video.size = os.path.getsize(path)
@@ -90,7 +90,7 @@ def scan_subtitle(path):
 
    # guess
    parent_path = path.strip(filename)
-   subtitle = Subtitle.fromguess(filename, parent_path, guessit(path))
+   subtitle = Subtitle.fromguess(parent_path, guessit(path))
 
 
    return subtitle
@@ -238,6 +238,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
         logger.info('Refining video with %s', refiner)
         try:
             print(refiner)
+            exit(0)
             refiner_manager[refiner].plugin(video, **kwargs)
         except:
             logger.exception('Failed to refine video')
