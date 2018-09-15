@@ -219,29 +219,29 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
         print()
 
 
-def refine(video, episode_refiners=None, movie_refiners=None, **kwargs):
-    """Refine a video using :ref:`refiners`.
-    .. note::
-        Exceptions raised in refiners are silently passed and logged.
-    :param video: the video to refine.
-    :type video: :class:`~subliminal.video.Video`
-    :param tuple episode_refiners: refiners to use for episodes.
-    :param tuple movie_refiners: refiners to use for movies.
-    :param \*\*kwargs: additional parameters for the :func:`~subliminal.refiners.refine` functions.
-    """
-    refiners = ()
-    if isinstance(video, Episode):
-        refiners = episode_refiners or ('metadata')
-    elif isinstance(video, Movie):
-        refiners = movie_refiners or ('metadata')
-    for refiner in refiners:
-        logger.info('Refining video with %s', refiner)
-        try:
-            print(refiner)
-            exit(0)
-            refiner_manager[refiner].plugin(video, **kwargs)
-        except:
-            logger.exception('Failed to refine video')
+# def refine(video, episode_refiners=None, movie_refiners=None, **kwargs):
+#     """Refine a video using :ref:`refiners`.
+#     .. note::
+#         Exceptions raised in refiners are silently passed and logged.
+#     :param video: the video to refine.
+#     :type video: :class:`~subliminal.video.Video`
+#     :param tuple episode_refiners: refiners to use for episodes.
+#     :param tuple movie_refiners: refiners to use for movies.
+#     :param \*\*kwargs: additional parameters for the :func:`~subliminal.refiners.refine` functions.
+#     """
+#     refiners = ()
+#     if isinstance(video, Episode):
+#         refiners = episode_refiners or ('metadata')
+#     elif isinstance(video, Movie):
+#         refiners = movie_refiners or ('metadata')
+#     for refiner in refiners:
+#         logger.info('Refining video with %s', refiner)
+#         try:
+#             print(refiner)
+#             exit(0)
+#             refiner_manager[refiner].plugin(video, **kwargs)
+#         except:
+#             logger.exception('Failed to refine video')
 
 def scan_folder(path):
     videos = []
