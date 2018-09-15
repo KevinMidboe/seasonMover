@@ -259,7 +259,7 @@ def scan_folder(path):
 
         video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
         
-        refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
+        refine(video, episode_refiners=None, movie_refiners=None, embedded_subtitles=not force)
         videos.append(video)
 
     # directories
@@ -267,13 +267,14 @@ def scan_folder(path):
         try:
             scanned_videos = scan_videos(path)
         except:
+            print('Unexpected error while collecting directory path %s', path)
             logging.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
         for video in scanned_videos:
             video.subtitle_languages |= set(search_external_subtitles(video.name,
                                                                           directory=path).values())
-            refine(video, episode_refiners=refiner, movie_refiners=refiner, embedded_subtitles=not force)
+            refine(video, episode_refiners=None, movie_refiners=None, embedded_subtitles=not force)
             videos.append(video)
 
     return videos
