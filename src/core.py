@@ -76,7 +76,7 @@ def scan_video(path):
     # hash of name
     hashids = Hashids(min_length=16)
     hashid = hashids.encode(path)
-    video.name_hash = name_hash
+    video.name_hash = hashid 
 
     return video
 
