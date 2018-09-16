@@ -270,60 +270,39 @@ def scan_folder(path):
 
     return videos
 
+def pickforgirlscouts(video):
+    if isinstance(video, Movie):
+        if video.title != None and video.year != None:
+            return True
+
+    elif isinstance(video, Episode):
+        if video.series != None and video.season != None and video.episode != None and type(video.episode) != list:
+            return True
+
+    return False
+
 def main():
-    path = '/mnt/mainframe/'
-    # hash_path = input('Hash: ')
-    # path += hash_path
-
-    # t = tvdb_api.Tvdb()
-
-    # hashList = organize_files(episodePath)
-    # pprint(hashList)
+    path = '/mnt/rescue/'
 
     videos = scan_folder(path)
+
+    scout = []
+    civilan = []
     for video in videos:
-        pprint(video)
+        girl = pickforgirlscouts(video)
+        if girl:
+            scout.append(girl)
+        else:
+            civilan.append(girl)
+
+    click.echo('%s scouts%s collected / %s civilans%s' % (
+        click.style(str(len(scout)), bold=True, fg='green' if scout else None),
+        's' if len(scout) > 1 else '',
+        click.style(str(len(civilan)), bold=True, fg='red' if civilan else None),
+        's' if len(civilan) > 1 else '',
+    ))
 
 
 if __name__ == '__main__':
     main()
 
-
-    # for hash in files:
-    #   hashIndex = [files[hash]]
-    #   for hashItems in hashIndex:
-    #      for file in hashItems:
-    #         print(file.series)
-
-    # saved_subtitles = []
-    # for subtitle in files:
-    #     # check content
-    #     if subtitle.name is None:
-    #         logging.error('Skipping subtitle %r: no content', subtitle)
-    #         continue
-
-    #     # check language
-    #     if subtitle.language in set(s.language for s in saved_subtitles):
-    #         logging.debug('Skipping subtitle %r: language already saved', subtitle)
-    #         continue
-
-    #     # create subtitle path
-    #     subtitle_path = get_subtitle_path(video.name, None if single else subtitle.language)
-    #     if directory is not None:
-    #         subtitle_path = os.path.join(directory, os.path.split(subtitle_path)[1])
-
-    #     # save content as is or in the specified encoding
-    #     logging.info('Saving %r to %r', subtitle, subtitle_path)
-    #     if encoding is None:
-    #         with io.open(subtitle_path, 'wb') as f:
-    #             f.write(subtitle.content)
-    #     else:
-    #         with io.open(subtitle_path, 'w', encoding=encoding) as f:
-    #             f.write(subtitle.text)
-    #     saved_subtitles.append(subtitle)
-
-    #     # check single
-    #     if single:
-    #         break
-
-    # return saved_subtitles
