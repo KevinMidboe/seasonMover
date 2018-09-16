@@ -111,50 +111,55 @@ def scan_videos(path):
     if not os.path.isdir(path):
         raise ValueError('Path is not a directory')
 
-    # walk the path
-    videos = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        logging.debug('Walking directory %r', dirpath)
+    # setup progress bar
+    with click.progressbar(length=len(os.listdir(path)), label='Searching for videos') as bar:
 
-        # remove badly encoded and hidden dirnames
-        for dirname in list(dirnames):
-            if dirname.startswith('.'):
-                logging.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
-                dirnames.remove(dirname)
+        # walk the path
+        videos = []
+        for dirpath, dirnames, filenames in os.walk(path):
+            logging.debug('Walking directory %r', dirpath)
 
-        # scan for videos
-        for filename in filenames:
-            # filter on videos and archives
-            if not (filename.endswith(VIDEO_EXTENSIONS)):
-                logging.debug('Skipping non-video file %s', filename)
-                continue
+            # remove badly encoded and hidden dirnames
+            for dirname in list(dirnames):
+                if dirname.startswith('.'):
+                    logging.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
+                    dirnames.remove(dirname)
 
-            # skip hidden files
-            if filename.startswith('.'):
-                logging.debug('Skipping hidden filename %r in %r', filename, dirpath)
-                continue
-
-            # reconstruct the file path
-            filepath = os.path.join(dirpath, filename)
-
-            # skip links
-            if os.path.islink(filepath):
-                logging.debug('Skipping link %r in %r', filename, dirpath)
-                continue
-
-            # scan
-            if filename.endswith(VIDEO_EXTENSIONS):  # video
-                try:
-                    video = scan_video(filepath)
-                except ValueError:  # pragma: no cover
-                    logging.exception('Error scanning video')
+            # scan for videos
+            for filename in filenames:
+                # filter on videos and archives
+                if not (filename.endswith(VIDEO_EXTENSIONS)):
+                    logging.debug('Skipping non-video file %s', filename)
                     continue
-            else:  # pragma: no cover
-                raise ValueError('Unsupported file %r' % filename)
 
-            videos.append(video)
+                # skip hidden files
+                if filename.startswith('.'):
+                    logging.debug('Skipping hidden filename %r in %r', filename, dirpath)
+                    continue
 
-    return videos
+                # reconstruct the file path
+                filepath = os.path.join(dirpath, filename)
+
+                # skip links
+                if os.path.islink(filepath):
+                    logging.debug('Skipping link %r in %r', filename, dirpath)
+                    continue
+
+                # scan
+                if filename.endswith(VIDEO_EXTENSIONS):  # video
+                    try:
+                        video = scan_video(filepath)
+                    except ValueError:  # pragma: no cover
+                        logging.exception('Error scanning video')
+                        continue
+                else:  # pragma: no cover
+                    raise ValueError('Unsupported file %r' % filename)
+
+                videos.append(video)
+
+            bar.update(1)
+
+        return videos
 
 
 def organize_files(path):
@@ -220,10 +225,6 @@ def scan_folder(path):
     errored_paths = []
     logging.debug('Collecting path %s', path)
 
-    content_count = 0
-    for _ in os.listdir(path):
-        content_count += 1
-
     # non-existing
     if not os.path.exists(path):
         try:
@@ -247,7 +248,7 @@ def scan_folder(path):
             logging.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
-        with click.progressbar(scanned_videos, label='Parsing found videos', item_show_function=lambda v: os.path.split(v.name)[1] if v is not None else '') as bar:
+        with click.progressbar(scanned_videos, label='Parsing found videos') as bar:
             for v in bar:
                 v.subtitle_languages |= set(search_external_subtitles(v.name,
                                                                           directory=path).values())
