@@ -33,7 +33,7 @@ class Video(object):
     :param set subtitles: existing subtitle languages.
     """
     def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 imdb_id=None, subtitles=None):
+                 imdb_id=None, subtitles=None, embeded_subtitles=None):
         #: Name or path of the video
         self.name = name
 
@@ -63,6 +63,9 @@ class Video(object):
 
         #: Existing subtitle languages
         self.subtitles = subtitles or set()
+
+        #: Embeded subtitle languages
+        self.embeded_subtitles = embeded_subtitles or set()
 
     @property
     def exists(self):

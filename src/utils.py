@@ -47,7 +47,7 @@ def refine(video, embedded_subtitles=True, **kwargs):
       * :attr:`~subliminal.video.Video.resolution`
       * :attr:`~subliminal.video.Video.video_codec`
       * :attr:`~subliminal.video.Video.audio_codec`
-      * :attr:`~subliminal.video.Video.subtitle_languages`
+      * :attr:`~subliminal.video.Video.embeded_subtitles`
     :param bool embedded_subtitles: search for embedded subtitles.
     """
     # skip non existing videos
@@ -111,24 +111,24 @@ def refine(video, embedded_subtitles=True, **kwargs):
         # subtitle tracks
         if mkv.subtitle_tracks:
             if embedded_subtitles:
-                embedded_subtitle_languages = set()
+                embeded_subtitles = set()
                 for st in mkv.subtitle_tracks:
                     if st.language:
                         try:
-                            embedded_subtitle_languages.add(Language.fromalpha3b(st.language))
+                            embeded_subtitles.add(Language.fromalpha3b(st.language))
                         except BabelfishError:
                             logging.error('Embedded subtitle track language %r is not a valid language', st.language)
-                            embedded_subtitle_languages.add(Language('und'))
+                            embeded_subtitles.add(Language('und'))
                     elif st.name:
                         try:
-                            embedded_subtitle_languages.add(Language.fromname(st.name))
+                            embeded_subtitles.add(Language.fromname(st.name))
                         except BabelfishError:
                             logging.debug('Embedded subtitle track name %r is not a valid language', st.name)
-                            embedded_subtitle_languages.add(Language('und'))
+                            embeded_subtitles.add(Language('und'))
                     else:
-                        embedded_subtitle_languages.add(Language('und'))
-                logging.debug('Found embedded subtitle %r', embedded_subtitle_languages)
-                video.subtitle_languages |= embedded_subtitle_languages
+                        embeded_subtitles.add(Language('und'))
+                logging.debug('Found embedded subtitle %r', embeded_subtitles)
+                video.embeded_subtitles |= embeded_subtitles
         else:
             logging.debug('MKV has no subtitle track')
     else:
