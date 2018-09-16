@@ -11,6 +11,7 @@ from hashids import Hashids
 import os, errno
 import logging
 import tvdb_api
+import click
 from pprint import pprint
 
 import env_variables as env
