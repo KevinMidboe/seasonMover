@@ -22,9 +22,6 @@ from utils import sanitize, refine
 logging.basicConfig(filename=env.logfile, level=logging.INFO)
 
 
-#: Supported archive extensions
-ARCHIVE_EXTENSIONS = ('.rar',)
-
 def search_external_subtitles(path, directory=None):
     dirpath, filename = os.path.split(path)
     dirpath = dirpath or '.'
@@ -128,7 +125,8 @@ def scan_videos(path):
         # scan for videos
         for filename in filenames:
             # filter on videos and archives
-            if not (filename.endswith(VIDEO_EXTENSIONS) or filename.endswith(ARCHIVE_EXTENSIONS)):
+            if not (filename.endswith(VIDEO_EXTENSIONS)):
+                logging.debug('Skipping non-video file %s', filename)
                 continue
 
             # skip hidden files
