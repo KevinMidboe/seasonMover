@@ -23,8 +23,8 @@ class Video(object):
     Represent a video, existing or not.
     :param str name: name or path of the video.
     :param str format: format of the video (HDTV, WEB-DL, BluRay, ...).
-    :param str release_group: release group of the video.
-    :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i).
+    :param str home: home is the optimal parent folder.
+    :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i, 4K).
     :param str video_codec: codec of the video stream.
     :param str audio_codec: codec of the main audio stream.
     :param str imdb_id: IMDb id of the video.
@@ -32,7 +32,7 @@ class Video(object):
     :param int size: size of the video file in bytes.
     :param set subtitles: existing subtitle languages.
     """
-    def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
+    def __init__(self, name, hash=None, size=None, format=None, home=None, resolution=None, video_codec=None, audio_codec=None,
                  imdb_id=None, subtitles=None, embeded_subtitles=None):
         #: Name or path of the video
         self.name = name
@@ -47,7 +47,7 @@ class Video(object):
         self.format = format
 
         #: Release group of the video
-        self.release_group = release_group
+        self.home = home
 
         #: Resolution of the video stream (480p, 720p, 1080p or 1080i)
         self.resolution = resolution
