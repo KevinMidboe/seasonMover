@@ -7,7 +7,7 @@ import re
 import struct
 
 from babelfish import Error as BabelfishError, Language
-from enzyme import MKV
+from enzyme import MalformedMKVError, MKV
 
 def sanitize(string, ignore_characters=None):
     """Sanitize a string to strip special characters.
@@ -58,7 +58,14 @@ def refine(video, embedded_subtitles=True, **kwargs):
     extension = os.path.splitext(video.name)[1]
     if extension == '.mkv':
         with open(video.name, 'rb') as f:
-            mkv = MKV(f)
+            try:
+                mkv = MKV(f)
+            except MalformedMKVError:
+                logging.error('Failed to parse mkv, malformed file')
+                return
+            except KeyError:
+                logging.error('Key error while opening file, uncompatible mkv container')
+                return
 
         # main video track
         if mkv.video_tracks:
