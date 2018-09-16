@@ -11,6 +11,7 @@ from hashids import Hashids
 import os, errno
 import logging
 import tvdb_api
+import click
 from pprint import pprint
 
 import env_variables as env
@@ -258,7 +259,7 @@ def scan_folder(path):
     return videos
 
 def main():
-    path = '/mnt/rescue/'
+    path = '/mnt/mainframe/'
     # hash_path = input('Hash: ')
     # path += hash_path
 
