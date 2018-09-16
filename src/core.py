@@ -239,7 +239,7 @@ def scan_folder(path):
             logging.exception('Unexpected error while collecting non-existing path %s', path)
             errored_paths.append(path)
 
-        video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
+        video.subtitles |= set(search_external_subtitles(video.name, directory=path))
         
         refine(video)
         videos.append(video)
@@ -256,7 +256,7 @@ def scan_folder(path):
         # Iterates over our scanned videos
         with click.progressbar(scanned_videos, label='Parsing videos') as bar:
             for v in bar:
-                v.subtitle_languages |= set(search_external_subtitles(v.name).values())
+                v.subtitles |= set(search_external_subtitles(v.name))
                 refine(v)
                 videos.append(v)
 

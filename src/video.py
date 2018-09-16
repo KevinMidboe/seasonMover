@@ -30,10 +30,10 @@ class Video(object):
     :param str imdb_id: IMDb id of the video.
     :param dict name_hash: hashes of the video file by provider names.
     :param int size: size of the video file in bytes.
-    :param set subtitle_languages: existing subtitle languages.
+    :param set subtitles: existing subtitle languages.
     """
     def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 imdb_id=None, subtitle_languages=None):
+                 imdb_id=None, subtitles=None):
         #: Name or path of the video
         self.name = name
 
@@ -62,7 +62,7 @@ class Video(object):
         self.imdb_id = imdb_id
 
         #: Existing subtitle languages
-        self.subtitle_languages = subtitle_languages or set()
+        self.subtitles = subtitles or set()
 
     @property
     def exists(self):
@@ -168,11 +168,10 @@ class Episode(Video):
     def __repr__(self):
         if self.year is None:
             return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, self.episode)
-        if self.subtitle_languages is not None:
-            return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitle_languages)
+        if self.subtitles is not None:
+            return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitles)
 
         return '<%s [%r, %d, %dx%d]>' % (self.__class__.__name__, self.series, self.year, self.season, self.episode)
-
 
 class Movie(Video):
     """Movie :class:`Video`.
@@ -210,6 +209,7 @@ class Movie(Video):
             return '<%s [%r]>' % (self.__class__.__name__, self.title)
 
         return '<%s [%r, %d]>' % (self.__class__.__name__, self.title, self.year)
+
 '''
 class Episode():
     """Episode :class:`Video`.
