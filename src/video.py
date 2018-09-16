@@ -32,13 +32,13 @@ class Video(object):
     :param int size: size of the video file in bytes.
     :param set subtitle_languages: existing subtitle languages.
     """
-    def __init__(self, name, name_hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
+    def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
                  imdb_id=None, subtitle_languages=None):
         #: Name or path of the video
         self.name = name
 
         #: Hashes of the video file by provider names
-        self.name_hash = name_hash
+        self.hash = hash
 
         #: Size of the video file in bytes
         self.size = size
