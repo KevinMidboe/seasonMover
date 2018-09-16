@@ -225,38 +225,37 @@ def scan_folder(path):
     for _ in os.listdir(path):
         content_count += 1
 
-    with click.progressbar(length=content_count, label='Collecting videos') as bar:
-        # non-existing
-        if not os.path.exists(path):
-            try:
-                video = Video.fromname(path)
-            except:
-                logging.exception('Unexpected error while collecting non-existing path %s', path)
-                errored_paths.append(path)
+    # non-existing
+    if not os.path.exists(path):
+        try:
+            video = Video.fromname(path)
+        except:
+            logging.exception('Unexpected error while collecting non-existing path %s', path)
+            errored_paths.append(path)
 
-            video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
-            
-            refine(video)
-            videos.append(video)
-            # Increment bar to full ?
+        video.subtitle_languages |= set(search_external_subtitles(video.name, directory=path).values())
+        
+        refine(video)
+        videos.append(video)
+        # Increment bar to full ?
 
-        # directories
-        if os.path.isdir(path):
-            try:
-                scanned_videos = scan_videos(path)
-            except:
-                print('Unexpected error while collecting directory path %s', path)
-                logging.exception('Unexpected error while collecting directory path %s', path)
-                errored_paths.append(path)
+    # directories
+    if os.path.isdir(path):
+        try:
+            scanned_videos = scan_videos(path)
+        except:
+            print('Unexpected error while collecting directory path %s', path)
+            logging.exception('Unexpected error while collecting directory path %s', path)
+            errored_paths.append(path)
 
-            for video in scanned_videos:
-                video.subtitle_languages |= set(search_external_subtitles(video.name,
+        with click.progressbar(scanned_videos, label='Parsing found videos', item_show_function=lambda v: os.path.split(v.name)[1] if v is not None else '') as bar:
+            for v in bar:
+                v.subtitle_languages |= set(search_external_subtitles(v.name,
                                                                           directory=path).values())
-                refine(video)
-                videos.append(video)
-                bar.update(1)
+                refine(v)
+                videos.append(v)
 
-        return videos
+    return videos
 
 def main():
     path = '/mnt/mainframe/'
