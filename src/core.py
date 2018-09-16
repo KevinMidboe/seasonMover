@@ -73,8 +73,11 @@ def scan_video(path):
 
     # hash of name
     hashids = Hashids(min_length=16)
-    hashid = hashids.encode(path)
-    video.name_hash = hashid 
+    if isinstance(v, Episode):
+        videoHash = hashids.encode(''.join(self.title, self.year or ''))
+    elif isinstance(v, Movie):
+        videoHash = hashids.encode(''.join(self.series, self.season, self.episode))
+    video.hash = videoHash
 
     return video
 
