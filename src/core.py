@@ -113,7 +113,9 @@ def scan_videos(path):
         raise ValueError('Path is not a directory')
 
     # setup progress bar
-    with click.progressbar(length=len(os.listdir(path)), label='Searching for videos') as bar:
+    path_children = 0
+    for _ in os.walk(path): path_children += 1
+    with click.progressbar(length=path_children, label='Searching folders for videos') as bar:
 
         # walk the path
         videos = []
