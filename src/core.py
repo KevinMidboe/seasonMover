@@ -251,12 +251,20 @@ def scan_folder(path):
             logging.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
+        # Iterates over our scanned videos
         with click.progressbar(scanned_videos, label='Parsing found videos') as bar:
             for v in bar:
                 v.subtitle_languages |= set(search_external_subtitles(v.name,
                                                                           directory=path).values())
                 refine(v)
                 videos.append(v)
+
+    click.echo('%s video%s collected / %s error%s' % (
+        click.style(str(len(videos)), bold=True, fg='green' if videos else None),
+        's' if len(videos) > 1 else '',
+        click.style(str(len(errored_paths)), bold=True, fg='red' if errored_paths else None),
+        's' if len(errored_paths) > 1 else '',
+    ))
 
     return videos
 
