@@ -256,8 +256,7 @@ def scan_folder(path):
         # Iterates over our scanned videos
         with click.progressbar(scanned_videos, label='Parsing videos') as bar:
             for v in bar:
-                v.subtitle_languages |= set(search_external_subtitles(v.name,
-                                                                          directory=path).values())
+                v.subtitle_languages |= set(search_external_subtitles(v.name).values())
                 refine(v)
                 videos.append(v)
 
