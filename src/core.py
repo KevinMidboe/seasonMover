@@ -118,7 +118,7 @@ def scan_videos(path):
     # setup progress bar
     path_children = 0
     for _ in os.walk(path): path_children += 1
-    with click.progressbar(length=path_children, label='Searching folders for videos') as bar:
+    with click.progressbar(length=path_children, show_pos=True, label='Searching folders for videos') as bar:
 
         # walk the path
         videos = []
@@ -250,12 +250,11 @@ def scan_folder(path):
         try:
             scanned_videos = scan_videos(path)
         except:
-            print('Unexpected error while collecting directory path %s', path)
             logging.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
         # Iterates over our scanned videos
-        with click.progressbar(scanned_videos, label='Parsing found videos') as bar:
+        with click.progressbar(scanned_videos, label='Parsing videos') as bar:
             for v in bar:
                 v.subtitle_languages |= set(search_external_subtitles(v.name,
                                                                           directory=path).values())
