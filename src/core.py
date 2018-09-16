@@ -7,7 +7,7 @@
 
 from guessit import guessit
 from babelfish import Language, LanguageReverseError
-from hashids import Hashids
+import hashlib
 import os, errno
 import logging
 import tvdb_api
@@ -72,11 +72,11 @@ def scan_video(path):
     video.size = os.path.getsize(path)
 
     # hash of name
-    hashids = Hashids(min_length=16)
-    if isinstance(v, Episode):
-        videoHash = hashids.encode(''.join(self.title, self.year or ''))
-    elif isinstance(v, Movie):
-        videoHash = hashids.encode(''.join(self.series, self.season, self.episode))
+    if isinstance(video, Movie):
+        hash_str = ''.join([video.title, str(video.year) or ''])
+    elif isinstance(video, Episode):
+        hash_str = ''.join([video.series, str(video.season), str(video.episode)])
+    videoHash = hashlib.md5(hash_str.encode()).hexdigest() 
     video.hash = videoHash
 
     return video
