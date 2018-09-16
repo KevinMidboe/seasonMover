@@ -65,7 +65,7 @@ def refine(video, embedded_subtitles=True, **kwargs):
             video_track = mkv.video_tracks[0]
 
             # resolution
-            if video_track.height in (480, 720, 1080):
+            if video_track.height in (480, 720, 1080, 2160):
                 if video_track.interlaced:
                     video.resolution = '%di' % video_track.height
                 else:
