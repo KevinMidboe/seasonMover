@@ -287,21 +287,25 @@ def main():
     videos = scan_folder(path)
 
     scout = []
-    civilan = []
+    civilian = []
     for video in videos:
-        girl = pickforgirlscouts(video)
-        if girl:
-            scout.append(girl)
+        sortingHat = pickforgirlscouts(video)
+        if sortingHat:
+            scout.append(video)
         else:
-            civilan.append(girl)
+            civilian.append(video)
 
-    click.echo('%s scouts%s collected / %s civilans%s' % (
+    click.echo('%s scout%s collected / %s civilan%s / %s candidate%s' % (
         click.style(str(len(scout)), bold=True, fg='green' if scout else None),
         's' if len(scout) > 1 else '',
-        click.style(str(len(civilan)), bold=True, fg='red' if civilan else None),
-        's' if len(civilan) > 1 else '',
+        click.style(str(len(civilian)), bold=True, fg='red' if civilian else None),
+        's' if len(civilian) > 1 else '',
+        click.style(str(len(videos)), bold=True, fg='blue' if videos else None),
+        's' if len(videos) > 1 else ''
     ))
 
+    for video in civilian:
+        print(video)
 
 if __name__ == '__main__':
     main()
