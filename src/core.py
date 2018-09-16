@@ -259,7 +259,7 @@ def scan_folder(path):
         return videos
 
 def main():
-    path = '/mnt/rescue/'
+    path = '/mnt/mainframe/'
     # hash_path = input('Hash: ')
     # path += hash_path
 
