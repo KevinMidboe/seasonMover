@@ -285,11 +285,6 @@ def pickforgirlscouts(video):
 
     elif isinstance(video, Episode):
         if video.series != None and video.season != None and video.episode != None and type(video.episode) != list:
-<<<<<<< HEAD
-            home_path = '{} S{}E{}'.format(str(video.series), str(video.season), str(video.episode))
-            movingToCollege(video, home_path)
-            return True
-=======
             # Handle the list problems
             home_path = '{} S{:02d}E{:02d}'.format(str(video.series), str(video.season), str(video.episode))
             try: 
@@ -297,7 +292,6 @@ def pickforgirlscouts(video):
                 return True
             except:
                 return False
->>>>>>> 916ce45fecb6d2b9edbed0a408ea1a16b7d85d0b
 
     return False
 
