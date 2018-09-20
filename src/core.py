@@ -13,6 +13,7 @@ import logging
 import tvdb_api
 import click
 from pprint import pprint
+from titlecase import titlecase
 
 import env_variables as env
 
@@ -72,12 +73,15 @@ def scan_video(path):
     video.size = os.path.getsize(path)
 
     # hash of name
-    if isinstance(video, Movie):
-        hash_str = ''.join([video.title, str(video.year) or ''])
-    elif isinstance(video, Episode):
-        hash_str = ''.join([video.series, str(video.season), str(video.episode)])
-    videoHash = hashlib.md5(hash_str.encode()).hexdigest() 
-    video.hash = videoHash
+    try:
+        if isinstance(video, Movie):
+            hash_str = ''.join([video.title, str(video.year) or ''])
+        elif isinstance(video, Episode):
+            hash_str = ''.join([video.series, str(video.season), str(video.episode)])
+        videoHash = hashlib.md5(hash_str.encode()).hexdigest() 
+        video.hash = videoHash
+    except:
+        print(video)
 
     return video
 
@@ -95,7 +99,6 @@ def scan_subtitle(path):
 
 
    return subtitle
-
 
 def scan_videos(path):
     """Scan `path` for videos and their subtitles.
@@ -118,7 +121,7 @@ def scan_videos(path):
     # setup progress bar
     path_children = 0
     for _ in os.walk(path): path_children += 1
-    with click.progressbar(length=path_children, show_pos=True, label='Searching folders for videos') as bar:
+    with click.progressbar(length=path_children, show_pos=True, label='Collecting videos') as bar:
 
         # walk the path
         videos = []
@@ -270,7 +273,7 @@ def scan_folder(path):
     return videos
 
 def movingToCollege(video, home_path):
-    video.home = home_path
+    video.home = titlecase(home_path)
 
 def pickforgirlscouts(video):
     if isinstance(video, Movie):
@@ -281,14 +284,14 @@ def pickforgirlscouts(video):
 
     elif isinstance(video, Episode):
         if video.series != None and video.season != None and video.episode != None and type(video.episode) != list:
-            home_path = '{} S{:02d}E{:02d}'.format(video.series, video.season, video.episode)
+            home_path = '{} S{}E{}'.format(str(video.series), str(video.season), str(video.episode))
             movingToCollege(video, home_path)
             return True
 
     return False
 
 def main():
-    path = '/mnt/rescue/'
+    path = '/mnt/mainframe/'
 
     videos = scan_folder(path)
 
@@ -310,8 +313,8 @@ def main():
         's' if len(videos) > 1 else ''
     ))
 
-    for video in civilian:
-        print(video)
+    for video in scout:
+        print('{} lives: {}'.format(video, video.home))
 
 if __name__ == '__main__':
     main()
