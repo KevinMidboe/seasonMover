@@ -133,7 +133,6 @@ def scan_videos(path):
 
             # scan for videos
             for filename in filenames:
-                # filter on videos and archives
                 if not (filename.endswith(VIDEO_EXTENSIONS)):
                     logging.debug('Skipping non-video file %s', filename)
                     continue
@@ -146,7 +145,6 @@ def scan_videos(path):
                 # reconstruct the file path
                 filepath = os.path.join(dirpath, filename)
 
-                # skip links
                 if os.path.islink(filepath):
                     logging.debug('Skipping link %r in %r', filename, dirpath)
                     continue
@@ -270,20 +268,27 @@ def scan_folder(path):
     return videos
 
 def movingToCollege(video, home_path):
-    video.home = home_path
+    video.home = path.join(home_path)
 
 def pickforgirlscouts(video):
     if isinstance(video, Movie):
         if video.title != None and video.year != None:
             home_path = '{} ({})'.format(video.title, video.year)
-            movingToCollege(video, home_path)
-            return True
+            try:
+                movingToCollege(video, home_path)
+                return True
+            except:
+                return False
 
     elif isinstance(video, Episode):
         if video.series != None and video.season != None and video.episode != None and type(video.episode) != list:
-            home_path = '{} S{:02d}E{:02d}'.format(video.series, video.season, video.episode)
-            movingToCollege(video, home_path)
-            return True
+            # Handle the list problems
+            home_path = '{} S{:02d}E{:02d}'.format(str(video.series), str(video.season), str(video.episode))
+            try: 
+                movingToCollege(video, home_path)
+                return True
+            except:
+                return False
 
     return False
 
@@ -295,8 +300,7 @@ def main():
     scout = []
     civilian = []
     for video in videos:
-        sortingHat = pickforgirlscouts(video)
-        if sortingHat:
+        if pickforgirlscouts(video):
             scout.append(video)
         else:
             civilian.append(video)
