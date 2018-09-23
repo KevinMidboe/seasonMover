@@ -58,7 +58,6 @@ def search_external_subtitles(path, directory=None):
                 filecontent = pattern.sub('', f.read())
                 filecontent = filecontent[0:1000]
                 language = langdetect.detect(filecontent)
-                print(language)
                 f.close()
 
         subtitles[p] = language
@@ -120,6 +119,10 @@ def scan_subtitle(path):
 
 
    return subtitle
+
+def subtitle_path(sibling, subtitle):
+    parent_path = os.path.dirname(sibling)
+    return os.path.join(parent_path, subtitle)
 
 def scan_videos(path):
     """Scan `path` for videos and their subtitles.
