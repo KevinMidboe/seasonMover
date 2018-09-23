@@ -11,6 +11,8 @@ import logging
 from titlecase import titlecase
 import hashlib, tvdb_api
 
+import env_variables as env
+
 logger = logging.getLogger('seasonedParser_core')
 
 #: Video extensions
@@ -188,7 +190,7 @@ class Episode(Video):
         series = titlecase(self.series)
         grandParent = '{}/{} Season {:02d}'.format(series, series, self.season)
         parent = '{} S{:02d}E{:02d}'.format(series, self.season, self.episode)
-        self.home = os.path.join(grandParent, parent, os.path.basename(self.name))
+        self.home = os.path.join(env.SHOWBASE, grandParent, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
@@ -245,7 +247,7 @@ class Movie(Video):
     def moveLocation(self):
         title = titlecase(self.title)
         parent = '{} ({})'.format(title, self.year)
-        self.home = os.path.join(parent, os.path.basename(self.name))
+        self.home = os.path.join(env.MOVIEBASE, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
