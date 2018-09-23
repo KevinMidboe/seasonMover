@@ -9,6 +9,7 @@ from guessit import guessit
 from babelfish import Language, LanguageReverseError
 import hashlib
 import os, errno
+import shutil
 import logging
 import re
 import tvdb_api
@@ -60,7 +61,7 @@ def search_external_subtitles(path, directory=None):
                 language = langdetect.detect(filecontent)
                 f.close()
 
-        subtitles[p] = language
+        subtitles[os.path.join(dirpath, p)] = language
     logger.debug('Found subtitles %r', subtitles)
 
     return subtitles
@@ -122,7 +123,7 @@ def scan_subtitle(path):
 
 def subtitle_path(sibling, subtitle):
     parent_path = os.path.dirname(sibling)
-    return os.path.join(parent_path, subtitle)
+    return os.path.join(parent_path, os.path.basename(subtitle))
 
 def scan_videos(path):
     """Scan `path` for videos and their subtitles.
@@ -311,9 +312,12 @@ def moveHome(video):
     logger.info("Moving video file from: '{}' to: '{}'".format(video.name, video.home))
     shutil.move(video.name, video.home)
     for sub in video.subtitles:
-        sub_home = subtitle_path(sub)
-        logger.info("Moving subtitle file from: '{}' to: '{}'".format(sub, sub_home))
-        shutil.move(sub, sub_home)
+        if not os.path.isfile(sub):
+            continue
+        oldpath = sub
+        newpath = subtitle_path(video.home, sub) 
+        logger.info("Moving subtitle file from: '{}' to: '{}'".format(oldpath, newpath))
+        shutil.move(oldpath, newpath)
 
 def main():
     path = '/mnt/mainframe/'
