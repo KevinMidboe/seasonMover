@@ -7,8 +7,11 @@
 
 from guessit import guessit
 import os
+import logging
 from titlecase import titlecase
 import hashlib, tvdb_api
+
+logger = logging.getLogger('seasonedParser_core')
 
 #: Video extensions
 VIDEO_EXTENSIONS = ('.3g2', '.3gp', '.3gp2', '.3gpp', '.60d', '.ajp', '.asf', '.asx', '.avchd', '.avi', '.bik',
@@ -190,7 +193,7 @@ class Episode(Video):
     def __repr__(self):
         if self.year is None:
             return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, self.episode)
-        if self.subtitles is not None:
+        if self.subtitles is not (None or set):
             return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitles)
 
         return '<%s [%r, %d, %dx%d]>' % (self.__class__.__name__, self.series, self.year, self.season, self.episode)
