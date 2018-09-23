@@ -14,6 +14,7 @@ import tvdb_api
 import click
 from pprint import pprint
 from titlecase import titlecase
+import langdetect
 
 import env_variables as env
 
@@ -48,6 +49,16 @@ def search_external_subtitles(path, directory=None):
                 language = Language.fromietf(language_code)
             except (ValueError, LanguageReverseError):
                 logger.error('Cannot parse language code %r', language_code)
+
+                f = open(p, 'r', encoding='ISO-8859-15')
+
+                pattern = re.compile('[0-9:\,-<>]+')
+                # head = list(islice(f.read(), 10))
+                filecontent = pattern.sub('', f.read())
+                filecontent = filecontent[0:1000]
+                language = langdetect.detect(filecontent)
+                print(language)
+                f.close()
 
         subtitles[p] = language
     logger.debug('Found subtitles %r', subtitles)
