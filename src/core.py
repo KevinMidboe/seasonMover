@@ -73,15 +73,17 @@ def scan_video(path):
     video.size = os.path.getsize(path)
 
     # hash of name
-    try:
-        if isinstance(video, Movie):
-            hash_str = ''.join([video.title, str(video.year) or ''])
-        elif isinstance(video, Episode):
-            hash_str = ''.join([video.series, str(video.season), str(video.episode)])
-        videoHash = hashlib.md5(hash_str.encode()).hexdigest() 
-        video.hash = videoHash
-    except:
-        print(video)
+    # if isinstance(video, Movie):
+    #     if type(video.title) is str and type(video.year) is int:
+    #         home_path = '{} ({})'.format(video.title, video.year)
+    #         hash_str = ''.join([video.title, str(video.year) or ''])
+    # elif isinstance(video, Episode):
+    #     if type(video.series) is str and type(video.season) is int and type(video.episode) is int:
+    #         home_path = '{} ({})'.format(video.title, video.year)
+    #         hash_str = ''.join([video.series, str(video.season), str(video.episode)])
+    #     video.hash = hashlib.md5(hash_str.encode()).hexdigest() 
+    # except:
+    #     print(video)
 
     return video
 
