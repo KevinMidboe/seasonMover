@@ -10,6 +10,7 @@ from babelfish import Language, LanguageReverseError
 import hashlib
 import os, errno
 import logging
+import re
 import tvdb_api
 import click
 from pprint import pprint
@@ -50,7 +51,7 @@ def search_external_subtitles(path, directory=None):
             except (ValueError, LanguageReverseError):
                 logger.error('Cannot parse language code %r', language_code)
 
-                f = open(p, 'r', encoding='ISO-8859-15')
+                f = open(os.path.join(dirpath, p), 'r', encoding='ISO-8859-15')
 
                 pattern = re.compile('[0-9:\,-<>]+')
                 # head = list(islice(f.read(), 10))
