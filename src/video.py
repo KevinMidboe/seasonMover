@@ -167,7 +167,19 @@ class Episode(Video):
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
     def sufficientInfo(self):
-        return None not in [self.series, self.season, self.episode] and list not in [type(self.series), type(self.episode)] 
+        ser = hasattr(self, 'series')
+        sea = hasattr(self, 'season')
+        ep = hasattr(self, 'episode')
+
+        if False in [ser, sea, ep]:
+            logger.error('{}, {} or {} found to have none value, manual correction required'.format(self.series, self.season, self.episode))
+            return False
+
+        if list in [type(self.series), type(self.season), type(self.episode)]:
+            logger.error('{}, {} or {} found to have list values, manual correction required'.format(self.series, self.season, self.episode))
+            return False
+
+        return True
 
     def moveLocation(self):
         series = titlecase(self.series)
@@ -217,7 +229,15 @@ class Movie(Video):
     def sufficientInfo(self):
         t = hasattr(self, "title")
         y = hasattr(self, "year")
-        return None not in [t, y]
+
+        if None in [t, y]:
+            logger.error('{} or {} found to have none value, manual correction required'.format(self.title, self.year))
+            return False
+        if list in [type(self.title), type(self.year)]:
+            logger.error('{} or {} found to have list value, manual correction required'.format(self.title, self.year))
+            return False
+
+        return True
  
     def moveLocation(self):
         title = titlecase(self.title)
