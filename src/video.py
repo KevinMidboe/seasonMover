@@ -48,7 +48,7 @@ class Video(object):
         self.format = format
 
         #: Release group of the video
-        self.home = home
+        self.release_group = release_group
 
         #: Resolution of the video stream (480p, 720p, 1080p or 1080i)
         self.resolution = resolution
@@ -166,11 +166,9 @@ class Episode(Video):
     def fromname(cls, name):
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
-    @classmethod 
     def sufficientInfo(self):
         return None not in [self.series, self.season, self.episode] and list not in [type(self.series), type(self.episode)] 
 
-    @classmethod
     def moveLocation(self):
         series = titlecase(self.series)
         grandParent = '{}/{} {:02d}'.format(series, series, self.season)
@@ -216,16 +214,15 @@ class Movie(Video):
     def fromname(cls, name):
         return cls.fromguess(name, guessit(name, {'type': 'movie'}))
 
-    @classmethod 
     def sufficientInfo(self):
-        return None not in [self.title, self.year] 
-
-    @classmethod
+        t = hasattr(self, "title")
+        y = hasattr(self, "year")
+        return None not in [t, y]
+ 
     def moveLocation(self):
         title = titlecase(self.title)
         parent = '{} ({})'.format(title, self.year)
-        self.home = os.path.join(parent, self.name)
-
+        self.home = os.path.join(parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
