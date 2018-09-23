@@ -301,6 +301,20 @@ def pickforgirlscouts(video):
 
     return False
 
+def moveHome(video):
+    dir = os.path.dirname(video.home)
+
+    if not os.path.exists(dir):
+        logger.info('Creating directory {}'.format(dir))
+        os.makedirs(dir)
+
+    logger.info("Moving video file from: '{}' to: '{}'".format(video.name, video.home))
+    shutil.move(video.name, video.home)
+    for sub in video.subtitles:
+        sub_home = subtitle_path(sub)
+        logger.info("Moving subtitle file from: '{}' to: '{}'".format(sub, sub_home))
+        shutil.move(sub, sub_home)
+
 def main():
     path = '/mnt/mainframe/'
 
@@ -324,7 +338,7 @@ def main():
     ))
 
     for video in scout:
-        print('{} lives: {}'.format(video, video.home))
+        moveHome(video)
 
 if __name__ == '__main__':
     main()
