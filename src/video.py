@@ -183,14 +183,14 @@ class Episode(Video):
 
     def moveLocation(self):
         series = titlecase(self.series)
-        grandParent = '{}/{} {:02d}'.format(series, series, self.season)
+        grandParent = '{}/{} Season {:02d}'.format(series, series, self.season)
         parent = '{} S{:02d}E{:02d}'.format(series, self.season, self.episode)
-        self.home = os.path.join(grandParent, parent, self.name)
+        self.home = os.path.join(grandParent, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
             return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, self.episode)
-        if self.subtitles is not None:
+        if self.subtitles is not None and len(self.subtitles) > 0:
             return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitles)
 
         return '<%s [%r, %d, %dx%d]>' % (self.__class__.__name__, self.series, self.year, self.season, self.episode)

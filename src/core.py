@@ -275,7 +275,6 @@ def scan_folder(path):
 def pickforgirlscouts(video):
     if video.sufficientInfo():
         video.moveLocation()
-        print(video.home)
         return True
 
     return False
