@@ -22,7 +22,14 @@ from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
 from utils import sanitize, refine
 
 logging.basicConfig(filename=env.logfile, level=logging.INFO)
+logger = logging.getLogger('seasonedParser_core')
+fh = logging.FileHandler(env.logfile)
+fh.setLevel(logging.INFO)
 
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+
+logger.addHandler(fh)
 
 def search_external_subtitles(path, directory=None):
     dirpath, filename = os.path.split(path)
@@ -40,10 +47,10 @@ def search_external_subtitles(path, directory=None):
             try:
                 language = Language.fromietf(language_code)
             except (ValueError, LanguageReverseError):
-                logging.error('Cannot parse language code %r', language_code)
+                logger.error('Cannot parse language code %r', language_code)
 
         subtitles[p] = language
-    logging.debug('Found subtitles %r', subtitles)
+    logger.debug('Found subtitles %r', subtitles)
 
     return subtitles
 
@@ -64,7 +71,7 @@ def scan_video(path):
         raise ValueError('%r is not a valid video extension' % os.path.splitext(path)[1])
 
     dirpath, filename = os.path.split(path)
-    logging.info('Scanning video %r in %r', filename, dirpath)
+    logger.info('Scanning video %r in %r', filename, dirpath)
 
     # guess
     video = Video.fromguess(path, guessit(path))
@@ -93,7 +100,7 @@ def scan_subtitle(path):
       raise ValueError('Path does not exist')
 
    dirpath, filename = os.path.split(path)
-   logging.info('Scanning subtitle %r in %r', filename, dirpath)
+   logger.info('Scanning subtitle %r in %r', filename, dirpath)
 
    # guess
    parent_path = path.strip(filename)
@@ -128,30 +135,30 @@ def scan_videos(path):
         # walk the path
         videos = []
         for dirpath, dirnames, filenames in os.walk(path):
-            logging.debug('Walking directory %r', dirpath)
+            logger.debug('Walking directory %r', dirpath)
 
             # remove badly encoded and hidden dirnames
             for dirname in list(dirnames):
                 if dirname.startswith('.'):
-                    logging.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
+                    logger.debug('Skipping hidden dirname %r in %r', dirname, dirpath)
                     dirnames.remove(dirname)
 
             # scan for videos
             for filename in filenames:
                 if not (filename.endswith(VIDEO_EXTENSIONS)):
-                    logging.debug('Skipping non-video file %s', filename)
+                    logger.debug('Skipping non-video file %s', filename)
                     continue
 
                 # skip hidden files
                 if filename.startswith('.'):
-                    logging.debug('Skipping hidden filename %r in %r', filename, dirpath)
+                    logger.debug('Skipping hidden filename %r in %r', filename, dirpath)
                     continue
 
                 # reconstruct the file path
                 filepath = os.path.join(dirpath, filename)
 
                 if os.path.islink(filepath):
-                    logging.debug('Skipping link %r in %r', filename, dirpath)
+                    logger.debug('Skipping link %r in %r', filename, dirpath)
                     continue
 
                 # scan
@@ -159,7 +166,7 @@ def scan_videos(path):
                     try:
                         video = scan_video(filepath)
                     except ValueError:  # pragma: no cover
-                        logging.exception('Error scanning video')
+                        logger.exception('Error scanning video')
                         continue
                 else:  # pragma: no cover
                     raise ValueError('Unsupported file %r' % filename)
@@ -232,14 +239,14 @@ def scan_folder(path):
     videos = []
     ignored_videos = []
     errored_paths = []
-    logging.debug('Collecting path %s', path)
+    logger.debug('Collecting path %s', path)
 
     # non-existing
     if not os.path.exists(path):
         try:
             video = Video.fromname(path)
         except:
-            logging.exception('Unexpected error while collecting non-existing path %s', path)
+            logger.exception('Unexpected error while collecting non-existing path %s', path)
             errored_paths.append(path)
 
         video.subtitles |= set(search_external_subtitles(video.name, directory=path))
@@ -253,7 +260,7 @@ def scan_folder(path):
         try:
             scanned_videos = scan_videos(path)
         except:
-            logging.exception('Unexpected error while collecting directory path %s', path)
+            logger.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
         # Iterates over our scanned videos

@@ -7,8 +7,11 @@
 
 from guessit import guessit
 import os
+import logging
 from titlecase import titlecase
 import hashlib, tvdb_api
+
+logger = logging.getLogger('seasonedParser_core')
 
 #: Video extensions
 VIDEO_EXTENSIONS = ('.3g2', '.3gp', '.3gp2', '.3gpp', '.60d', '.ajp', '.asf', '.asx', '.avchd', '.avi', '.bik',
@@ -230,7 +233,7 @@ class Movie(Video):
         t = hasattr(self, "title")
         y = hasattr(self, "year")
 
-        if None in [t, y]:
+        if False in [t, y] or  None in [self.title, self.year]:
             logger.error('{} or {} found to have none value, manual correction required'.format(self.title, self.year))
             return False
         if list in [type(self.title), type(self.year)]:
