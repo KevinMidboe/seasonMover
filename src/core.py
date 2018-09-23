@@ -272,28 +272,11 @@ def scan_folder(path):
 
     return videos
 
-def movingToCollege(video, home_path):
-    video.home = titlecase(home_path)
-
 def pickforgirlscouts(video):
-    if isinstance(video, Movie):
-        if video.title != None and video.year != None:
-            home_path = '{} ({})'.format(video.title, video.year)
-            try:
-                movingToCollege(video, home_path)
-                return True
-            except:
-                return False
-
-    elif isinstance(video, Episode):
-        if video.series != None and video.season != None and video.episode != None and type(video.episode) != list:
-            # Handle the list problems
-            home_path = '{} S{:02d}E{:02d}'.format(str(video.series), str(video.season), str(video.episode))
-            try: 
-                movingToCollege(video, home_path)
-                return True
-            except:
-                return False
+    if video.sufficientInfo():
+        video.moveLocation()
+        print(video.home)
+        return True
 
     return False
 

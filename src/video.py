@@ -7,6 +7,7 @@
 
 from guessit import guessit
 import os
+from titlecase import titlecase
 import hashlib, tvdb_api
 
 #: Video extensions
@@ -165,6 +166,17 @@ class Episode(Video):
     def fromname(cls, name):
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
+    @classmethod 
+    def sufficientInfo(self):
+        return None not in [self.series, self.season, self.episode] and list not in [type(self.series), type(self.episode)] 
+
+    @classmethod
+    def moveLocation(self):
+        series = titlecase(self.series)
+        grandParent = '{}/{} {:02d}'.format(series, series, self.season)
+        parent = '{} S{:02d}E{:02d}'.format(series, self.season, self.episode)
+        self.home = os.path.join(grandParent, parent, self.name)
+
     def __repr__(self):
         if self.year is None:
             return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, self.episode)
@@ -203,6 +215,17 @@ class Movie(Video):
     @classmethod
     def fromname(cls, name):
         return cls.fromguess(name, guessit(name, {'type': 'movie'}))
+
+    @classmethod 
+    def sufficientInfo(self):
+        return None not in [self.title, self.year] 
+
+    @classmethod
+    def moveLocation(self):
+        title = titlecase(self.title)
+        parent = '{} ({})'.format(title, self.year)
+        self.home = os.path.join(parent, self.name)
+
 
     def __repr__(self):
         if self.year is None:
