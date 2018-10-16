@@ -1,2 +1,6 @@
 guessit==2.1.4
 tvdb_api==2.0
+hashids==1.2.0
+enzyme>=0.4.1
+click>=6.7
+langdetect>=1.0.7

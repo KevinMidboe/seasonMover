@@ -1,1 +1,0 @@
-logfile = 'conf/output.log'
