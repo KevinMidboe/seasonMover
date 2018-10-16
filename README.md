@@ -27,3 +27,18 @@ There are many run commands for this, but here is a list of the current working 
 
 Here the first parameter is our move command, which in turn calls motherMover. The second parameter is what we want the filenames to be called. Notice the (num1..num2), this is to create a range for all the episodes we want to move. The last parameter is the path we want to move our content.
  > This will be done automatically by the parser based on the info in the media items name, but it is nice to have a manual command.
+
+
+## Cli
+
+Arguments
+* Dry run with --dry
+* Path variable
+* daemon with -d option
+  * Still need the path variable
+  * Daemon sends confirmation and on missing asks tweetf or correction
+
+Functions
+* Should ask for input when missing info, always when cli
+
+
