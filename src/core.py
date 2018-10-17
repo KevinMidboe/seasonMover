@@ -334,31 +334,3 @@ def moveHome(video):
         logger.info("Moving subtitle file from: '{}' to: '{}'".format(oldpath, newpath))
         shutil.move(oldpath, newpath)
 
-def main():
-    path = '/mnt/mainframe/'
-
-    videos = scan_folder(path)
-
-    scout = []
-    civilian = []
-    for video in videos:
-        if pickforgirlscouts(video):
-            scout.append(video)
-        else:
-            civilian.append(video)
-
-    click.echo('%s scout%s collected / %s civilan%s / %s candidate%s' % (
-        click.style(str(len(scout)), bold=True, fg='green' if scout else None),
-        's' if len(scout) > 1 else '',
-        click.style(str(len(civilian)), bold=True, fg='red' if civilian else None),
-        's' if len(civilian) > 1 else '',
-        click.style(str(len(videos)), bold=True, fg='blue' if videos else None),
-        's' if len(videos) > 1 else ''
-    ))
-
-    for video in scout:
-        moveHome(video)
-
-if __name__ == '__main__':
-    main()
-
