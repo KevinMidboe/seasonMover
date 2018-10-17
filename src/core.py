@@ -25,7 +25,7 @@ from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
 from utils import sanitize, refine
 
 logging.basicConfig(filename=env.logfile, level=logging.DEBUG)
-logger = logging.getLogger('seasonedParser_core')
+logger = logging.getLogger('seasonedParser')
 fh = logging.FileHandler(env.logfile)
 fh.setLevel(logging.DEBUG)
 sh = logging.StreamHandler()
@@ -70,6 +70,9 @@ def search_external_subtitles(path, directory=None):
 
     return subtitles
 
+def find_file_size(video):
+    return os.path.getsize(video.name)
+
 def scan_video(path):
     """Scan a video from a `path`.
 
@@ -92,8 +95,8 @@ def scan_video(path):
     # guess
     video = Video.fromguess(path, guessit(path))
 
-    # size
-    video.size = os.path.getsize(path)
+    if video.sufficientInfo():
+        video.setMoveLocation()
 
     # hash of name
     # if isinstance(video, Movie):
@@ -296,6 +299,7 @@ def scan_folder(path):
                 v.subtitles |= set(search_external_subtitles(v.name))
                 refine(v)
                 videos.append(v)
+                video.size = find_file_size()
 
     click.echo('%s video%s collected / %s error%s' % (
         click.style(str(len(videos)), bold=True, fg='green' if videos else None),

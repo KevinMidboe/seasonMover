@@ -27,6 +27,10 @@ def listPath(path):
     else:
         print('Path does not exists')
 
+def guessFromInput(video):
+    print('Insufficient info for {}'.format(video.name))
+    video_name = input('Input 
+
 @click.command()
 @click.argument('path')
 @click.option('--greeting', '-g')
