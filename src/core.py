@@ -261,22 +261,29 @@ def scan_folder(path):
     errored_paths = []
     logger.debug('Collecting path %s', path)
 
+
     # non-existing
     if not os.path.exists(path):
-        try:
-            video = Video.fromname(path)
-        except:
-            logger.exception('Unexpected error while collecting non-existing path %s', path)
-            errored_paths.append(path)
+        errored_paths.append(path)
+        logger.exception("The path '{}' does not exist".format(path)) 
 
-        video.subtitles |= set(search_external_subtitles(video.name, directory=path))
+    # file
+    # if path is a file
+    if os.path.isfile(path):
+        logger.info('Path is a file')
+        try:
+            video = scan_video(path)
+        except:
+            logger.exception('Unexpected error while collection file with path {}'.format(path))
         
+        video.subtitles |= set(search_external_subtitles(video.name))
+
         refine(video)
         videos.append(video)
-        # Increment bar to full ?
 
     # directories
     if os.path.isdir(path):
+        logger.info('Path is a directory')
         try:
             scanned_videos = scan_videos(path)
         except:
