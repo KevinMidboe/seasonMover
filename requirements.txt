@@ -4,3 +4,4 @@ hashids==1.2.0
 enzyme>=0.4.1
 click>=6.7
 langdetect>=1.0.7
+titlecase>=0.12.0

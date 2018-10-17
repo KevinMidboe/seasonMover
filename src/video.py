@@ -12,8 +12,9 @@ from titlecase import titlecase
 import hashlib, tvdb_api
 
 import env_variables as env
+from exceptions import InsufficientInfoError
 
-logger = logging.getLogger('seasonedParser_core')
+logger = logging.getLogger('seasonedParser')
 
 #: Video extensions
 VIDEO_EXTENSIONS = ('.3g2', '.3gp', '.3gp2', '.3gpp', '.60d', '.ajp', '.asf', '.asx', '.avchd', '.avi', '.bik',
@@ -33,13 +34,13 @@ class Video(object):
     :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i, 4K).
     :param str video_codec: codec of the video stream.
     :param str audio_codec: codec of the main audio stream.
-    :param str home: optimal parent folder.
+    :param str move_location: location to move file to.
     :param dict name_hash: hashes of the video file by provider names.
     :param int size: size of the video file in bytes.
     :param set subtitles: existing subtitle languages.
     """
     def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 home=None, subtitles=None, embeded_subtitles=None):
+                 move_location=None, subtitles=None, embeded_subtitles=None):
         #: Name or path of the video
         self.name = name
 
@@ -64,8 +65,8 @@ class Video(object):
         #: Codec of the main audio stream
         self.audio_codec = audio_codec
 
-        #: optimal home path; parent folder.
-        self.home = home
+        #: optimal move_location path; parent folder.
+        self.move_location = move_location 
 
         #: Existing subtitle languages
         self.subtitles = subtitles or set()
@@ -159,8 +160,8 @@ class Episode(Video):
         if guess['type'] != 'episode':
             raise ValueError('The guess must be an episode guess')
 
-        if 'title' not in guess or 'episode' not in guess:
-            raise ValueError('Insufficient data to process the guess')
+        if 'title' not in guess or 'season' not in guess or 'episode' not in guess:
+            raise InsufficientInfoError('Insufficient data to process the guess')
 
         return cls(name, guess['title'], guess.get('season', 1), guess['episode'], title=guess.get('episode_title'),
                    year=guess.get('year'), format=guess.get('format'), original_series='year' not in guess,
@@ -171,26 +172,11 @@ class Episode(Video):
     def fromname(cls, name):
         return cls.fromguess(name, guessit(name, {'type': 'episode'}))
 
-    def sufficientInfo(self):
-        ser = hasattr(self, 'series')
-        sea = hasattr(self, 'season')
-        ep = hasattr(self, 'episode')
-
-        if False in [ser, sea, ep]:
-            logger.error('{}, {} or {} found to have none value, manual correction required'.format(self.series, self.season, self.episode))
-            return False
-
-        if list in [type(self.series), type(self.season), type(self.episode)]:
-            logger.error('{}, {} or {} found to have list values, manual correction required'.format(self.series, self.season, self.episode))
-            return False
-
-        return True
-
-    def moveLocation(self):
+    def wantedFilePath(self):
         series = titlecase(self.series)
         grandParent = '{}/{} Season {:02d}'.format(series, series, self.season)
         parent = '{} S{:02d}E{:02d}'.format(series, self.season, self.episode)
-        self.home = os.path.join(env.SHOWBASE, grandParent, parent, os.path.basename(self.name))
+        return os.path.join(env.SHOWBASE, grandParent, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
@@ -220,15 +206,15 @@ class Movie(Video):
         if guess['type'] != 'movie':
             raise ValueError('The guess must be a movie guess')
 
-        if 'title' not in guess:
-            raise ValueError('Insufficient data to process the guess')
+        if 'title' not in guess or 'year' not in guess:
+            raise InsufficientInfoError('Insufficient data to process the guess')
 
         return cls(name, guess['title'], format=guess.get('format'), release_group=guess.get('release_group'),
                    resolution=guess.get('screen_size'), video_codec=guess.get('video_codec'),
                    audio_codec=guess.get('audio_codec'), year=guess.get('year'))
 
     @classmethod
-    def fromname(cls, name):
+    def fromname(cls, name, year):
         return cls.fromguess(name, guessit(name, {'type': 'movie'}))
 
     def sufficientInfo(self):
@@ -244,10 +230,10 @@ class Movie(Video):
 
         return True
  
-    def moveLocation(self):
+    def wantedFilePath(self):
         title = titlecase(self.title)
         parent = '{} ({})'.format(title, self.year)
-        self.home = os.path.join(env.MOVIEBASE, parent, os.path.basename(self.name))
+        return os.path.join(env.MOVIEBASE, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:
