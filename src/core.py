@@ -19,6 +19,7 @@ from titlecase import titlecase
 import langdetect
 
 import env_variables as env
+from exceptions import InsufficientInfoError
 
 from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
@@ -95,8 +96,8 @@ def scan_video(path):
     # guess
     video = Video.fromguess(path, guessit(path))
 
-    if video.sufficientInfo():
-        video.setMoveLocation()
+    video.subtitles |= set(search_external_subtitles(video.name))
+    refine(video)
 
     # hash of name
     # if isinstance(video, Movie):
@@ -260,7 +261,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def scan_folder(path):
     videos = []
-    ignored_videos = []
+    insufficient_info = []
     errored_paths = []
     logger.debug('Collecting path %s', path)
 
@@ -274,41 +275,39 @@ def scan_folder(path):
     # if path is a file
     if os.path.isfile(path):
         logger.info('Path is a file')
+
         try:
             video = scan_video(path)
-        except:
-            logger.exception('Unexpected error while collection file with path {}'.format(path))
-        
-        video.subtitles |= set(search_external_subtitles(video.name))
+            videos.append(video)
 
-        refine(video)
-        videos.append(video)
+        except InsufficientInfoError as e:
+            logger.error(e)
+            insufficient_info.append(path)
 
     # directories
     if os.path.isdir(path):
         logger.info('Path is a directory')
+
+        scanned_videos = []
         try:
             scanned_videos = scan_videos(path)
+        except InsufficientInfoError as e:
+            logger.error(e)
+            insufficient_info.append(path)
         except:
             logger.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
-        # Iterates over our scanned videos
-        with click.progressbar(scanned_videos, label='Parsing videos') as bar:
-            for v in bar:
-                v.subtitles |= set(search_external_subtitles(v.name))
-                refine(v)
-                videos.append(v)
-                video.size = find_file_size()
-
-    click.echo('%s video%s collected / %s error%s' % (
+        click.echo('%s video%s collected / %s file%s with insufficient info / %s error%s' % (
         click.style(str(len(videos)), bold=True, fg='green' if videos else None),
         's' if len(videos) > 1 else '',
+        click.style(str(len(insufficient_info)), bold=True, fg='yellow' if insufficient_info else None),
+        's' if len(insufficient_info) > 1 else '',
         click.style(str(len(errored_paths)), bold=True, fg='red' if errored_paths else None),
         's' if len(errored_paths) > 1 else '',
     ))
 
-    return videos
+    return videos, insufficient_info
 
 def pickforgirlscouts(video):
     if video.sufficientInfo():
@@ -318,19 +317,20 @@ def pickforgirlscouts(video):
     return False
 
 def moveHome(video):
-    dir = os.path.dirname(video.home)
+    wantedFilePath = video.wantedFilePath()
+    dir = os.path.dirname(wantedFilePath)
 
     if not os.path.exists(dir):
         logger.info('Creating directory {}'.format(dir))
         os.makedirs(dir)
 
-    logger.info("Moving video file from: '{}' to: '{}'".format(video.name, video.home))
-    shutil.move(video.name, video.home)
+    logger.info("Moving video file from: '{}' to: '{}'".format(video.name, wantedFilePath))
+    shutil.move(video.name, wantedFilePath)
     for sub in video.subtitles:
         if not os.path.isfile(sub):
             continue
         oldpath = sub
-        newpath = subtitle_path(video.home, sub) 
+        newpath = subtitle_path(wantedFilePath, sub) 
         logger.info("Moving subtitle file from: '{}' to: '{}'".format(oldpath, newpath))
         shutil.move(oldpath, newpath)
 
