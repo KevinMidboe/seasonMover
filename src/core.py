@@ -24,15 +24,19 @@ from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
 from utils import sanitize, refine
 
-logging.basicConfig(filename=env.logfile, level=logging.INFO)
+logging.basicConfig(filename=env.logfile, level=logging.DEBUG)
 logger = logging.getLogger('seasonedParser_core')
 fh = logging.FileHandler(env.logfile)
-fh.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
+sh = logging.StreamHandler()
+sh.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
+sh.setFormatter(formatter)
 
 logger.addHandler(fh)
+logger.addHandler(sh)
 
 def search_external_subtitles(path, directory=None):
     dirpath, filename = os.path.split(path)
