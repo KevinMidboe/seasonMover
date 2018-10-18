@@ -19,7 +19,7 @@ from titlecase import titlecase
 import langdetect
 
 import env_variables as env
-from exceptions import InsufficientInfoError
+from exceptions import InsufficientNameError
 
 from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
@@ -28,9 +28,9 @@ from utils import sanitize, refine
 logging.basicConfig(filename=env.logfile, level=logging.DEBUG)
 logger = logging.getLogger('seasonedParser')
 fh = logging.FileHandler(env.logfile)
-fh.setLevel(logging.DEBUG)
+fh.setLevel(logging.INFO)
 sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
+sh.setLevel(logging.ERROR)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
@@ -158,6 +158,8 @@ def scan_videos(path):
 
         # walk the path
         videos = []
+        insufficient_name = []
+        errors_path = []
         for dirpath, dirnames, filenames in os.walk(path):
             logger.debug('Walking directory %r', dirpath)
 
@@ -189,8 +191,13 @@ def scan_videos(path):
                 if filename.endswith(VIDEO_EXTENSIONS):  # video
                     try:
                         video = scan_video(filepath)
+                    except InsufficientInfoError as e:
+                        logger.info(e)
+                        insufficient_name.append(filepath)                        
+                        continue
                     except ValueError:  # pragma: no cover
                         logger.exception('Error scanning video')
+                        errors_path.append(filepath)
                         continue
                 else:  # pragma: no cover
                     raise ValueError('Unsupported file %r' % filename)
@@ -199,7 +206,7 @@ def scan_videos(path):
 
             bar.update(1)
 
-        return videos
+        return videos, insufficient_name, errors_path
 
 
 def organize_files(path):
@@ -261,7 +268,7 @@ def save_subtitles(files, single=False, directory=None, encoding=None):
 
 def scan_folder(path):
     videos = []
-    insufficient_info = []
+    insufficient_name = []
     errored_paths = []
     logger.debug('Collecting path %s', path)
 
@@ -280,9 +287,9 @@ def scan_folder(path):
             video = scan_video(path)
             videos.append(video)
 
-        except InsufficientInfoError as e:
-            logger.error(e)
-            insufficient_info.append(path)
+        except InsufficientNameError as e:
+            logger.info(e)
+            insufficient_name.append(path)
 
     # directories
     if os.path.isdir(path):
@@ -290,24 +297,21 @@ def scan_folder(path):
 
         scanned_videos = []
         try:
-            scanned_videos = scan_videos(path)
-        except InsufficientInfoError as e:
-            logger.error(e)
-            insufficient_info.append(path)
+            videos, insufficient_name, errored_paths = scan_videos(path)
         except:
             logger.exception('Unexpected error while collecting directory path %s', path)
             errored_paths.append(path)
 
-        click.echo('%s video%s collected / %s file%s with insufficient info / %s error%s' % (
+        click.echo('%s video%s collected / %s file%s with insufficient name / %s error%s' % (
         click.style(str(len(videos)), bold=True, fg='green' if videos else None),
         's' if len(videos) > 1 else '',
-        click.style(str(len(insufficient_info)), bold=True, fg='yellow' if insufficient_info else None),
-        's' if len(insufficient_info) > 1 else '',
+        click.style(str(len(insufficient_name)), bold=True, fg='yellow' if insufficient_name else None),
+        's' if len(insufficient_name) > 1 else '',
         click.style(str(len(errored_paths)), bold=True, fg='red' if errored_paths else None),
         's' if len(errored_paths) > 1 else '',
     ))
 
-    return videos, insufficient_info
+    return videos, insufficient_name
 
 def pickforgirlscouts(video):
     if video.sufficientInfo():
@@ -334,3 +338,6 @@ def moveHome(video):
         logger.info("Moving subtitle file from: '{}' to: '{}'".format(oldpath, newpath))
         shutil.move(oldpath, newpath)
 
+# Give feedback before delete ?
+def empthDirectory(paths):
+    pass

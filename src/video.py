@@ -12,7 +12,7 @@ from titlecase import titlecase
 import hashlib, tvdb_api
 
 import env_variables as env
-from exceptions import InsufficientInfoError
+from exceptions import InsufficientNameError 
 
 logger = logging.getLogger('seasonedParser')
 
@@ -34,13 +34,11 @@ class Video(object):
     :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i, 4K).
     :param str video_codec: codec of the video stream.
     :param str audio_codec: codec of the main audio stream.
-    :param str move_location: location to move file to.
-    :param dict name_hash: hashes of the video file by provider names.
     :param int size: size of the video file in bytes.
     :param set subtitles: existing subtitle languages.
     """
     def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 move_location=None, subtitles=None, embeded_subtitles=None):
+                 subtitles=None, embeded_subtitles=None):
         #: Name or path of the video
         self.name = name
 
@@ -64,9 +62,6 @@ class Video(object):
 
         #: Codec of the main audio stream
         self.audio_codec = audio_codec
-
-        #: optimal move_location path; parent folder.
-        self.move_location = move_location 
 
         #: Existing subtitle languages
         self.subtitles = subtitles or set()
@@ -157,11 +152,15 @@ class Episode(Video):
 
     @classmethod
     def fromguess(cls, name, guess):
+        logger.info('Guess: {}'.format(guess))
         if guess['type'] != 'episode':
             raise ValueError('The guess must be an episode guess')
 
         if 'title' not in guess or 'season' not in guess or 'episode' not in guess:
-            raise InsufficientInfoError('Insufficient data to process the guess')
+            raise InsufficientNameError('Guess failed to have sufficient data from query: {}'.format(name))
+
+        if any([isinstance(x, list) for x in [guess['title'], guess['season'], guess['episode']]]):
+            raise InsufficientNameError('Guess could not be parsed, list values found.')
 
         return cls(name, guess['title'], guess.get('season', 1), guess['episode'], title=guess.get('episode_title'),
                    year=guess.get('year'), format=guess.get('format'), original_series='year' not in guess,
@@ -179,12 +178,9 @@ class Episode(Video):
         return os.path.join(env.SHOWBASE, grandParent, parent, os.path.basename(self.name))
 
     def __repr__(self):
-        if self.year is None:
-            return '<%s [%r, %dx%s]>' % (self.__class__.__name__, self.series, self.season, self.episode)
         if self.subtitles is not None and len(self.subtitles) > 0:
             return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitles)
-
-        return '<%s [%r, %d, %dx%d]>' % (self.__class__.__name__, self.series, self.year, self.season, self.episode)
+        return '<%s [%r, %dx%d]>' % (self.__class__.__name__, self.series, self.season, self.episode)
 
 class Movie(Video):
     """Movie :class:`Video`.
@@ -207,7 +203,7 @@ class Movie(Video):
             raise ValueError('The guess must be a movie guess')
 
         if 'title' not in guess or 'year' not in guess:
-            raise InsufficientInfoError('Insufficient data to process the guess')
+            raise InsufficientNameError('Guess failed to have sufficient data from query: {}'.format(name))
 
         return cls(name, guess['title'], format=guess.get('format'), release_group=guess.get('release_group'),
                    resolution=guess.get('screen_size'), video_codec=guess.get('video_codec'),
