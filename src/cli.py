@@ -1,37 +1,59 @@
 #!usr/bin/env python3.6
-from guessit import guessit
 import click
+from guessit import guessit
 
 from core import scan_folder, moveHome 
 from video import Video
-from exceptions import InsufficientInfoError
+from exceptions import InsufficientNameError
+
+def moveHome(video):
+    print('Would have moved: {}'.format(video))
+
+def tweet(video):
+    pass
+
+def prompt(name):
+    manual_name = input("Insufficient name: '{}'\nInput name manually: ".format(name)) 
+
+    if manual_name is 'q':
+        assert KeyboardInterrupt
+    if manual_name is 's':
+        return None
+
+
+    return manual_name
 
 @click.command()
 @click.argument('path')
-def main(path):
-    videos, insufficient_info = scan_folder(path)
-    # print('Sweet lemonade: {} {}'.format(videos, insufficient_info))
+@click.option('--daemon', '-d', daemon)
+def main(path, daemon):
+    videos, insufficient_name = scan_folder(path)
 
     for video in videos:
         moveHome(video)
 
-    while len(insufficient_info) >= 1:
-        for file in insufficient_info:
-            supplementary_info = input("Insufficient info for match file: '{}'\nSupplementary info: ".format(file)) 
-
-            if supplementary_info is 'q':
-                exit(0)
-            if supplementary_info is 's':
-                insufficient_info.pop()
-                continue
-
+    while len(insufficient_name) >= 1:
+        for file in insufficient_name:
             try:
-                video = Video.fromguess(file, guessit(supplementary_info))
-                print(video)
-                moveHome(video)
-                insufficient_info.pop()
-            except InsufficientInfoError:
-                pass
-            
+                manual_name = prompt(file)
+                
+                if manual_name is None:
+                    insufficient_name.pop()
+                    continue
+                
+                try:
+                    video = Video.fromguess(file, guessit(manual_name))
+                    moveHome(video)
+                    insufficient_name.pop()
+
+                except InsufficientNameError:
+                    continue 
+                    
+            except KeyboardInterrupt:
+                # Logger: Received interrupt, exiting parser.
+                # should the class objects be deleted ?
+                print('Interrupt detected. Exiting')
+                exit(0)
+           
 if __name__ == '__main__':
     main()
