@@ -25,7 +25,7 @@ from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
 from utils import sanitize, refine
 
-logging.basicConfig(filename=env.logfile, level=logging.DEBUG)
+logging.basicConfig(filename=env.logfile, level=logging.INFO)
 logger = logging.getLogger('seasonedParser')
 fh = logging.FileHandler(env.logfile)
 fh.setLevel(logging.INFO)
@@ -191,7 +191,7 @@ def scan_videos(path):
                 if filename.endswith(VIDEO_EXTENSIONS):  # video
                     try:
                         video = scan_video(filepath)
-                    except InsufficientInfoError as e:
+                    except InsufficientNameError as e:
                         logger.info(e)
                         insufficient_name.append(filepath)                        
                         continue
