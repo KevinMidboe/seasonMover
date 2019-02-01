@@ -602,3 +602,13 @@ How are the insufficient supposed to be handled?
 Should not create dependencies in the code by have an exception doing something very specific to install and external data by checking if a guess can be resolved from checking earlier matches. I would be more nimble and modular approach to have our errors send back and returned and have a separate excution path which has the database element for checking eariler matches. Now the dependencies are segmented more in two different files, increasing upgradability. 
 Another note would be to not have rearly and error-prone calls happend deep in a execution path but have it separated so handling the errors for it can be high level and not have others functions error handling take over or missrepersent the original error.
 
+|
+|\           Could look at the SHOW_PATH and search for nodes with same 
+| |          structure as the guess. A pretty high number or match the 
+| o          partent dirs and then compare the file's guess with itself.
+
+
+* Daemon argument - Throw exception if notificiation agent is not defined.
+* should the path be saved in the video object?
+
+NB! New path is not defined. 
