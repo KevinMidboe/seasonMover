@@ -6,9 +6,6 @@ from core import scan_folder, moveHome
 from video import Video
 from exceptions import InsufficientNameError
 
-def moveHome(video):
-    print('Would have moved: {}'.format(video))
-
 def tweet(video):
     pass
 
@@ -25,7 +22,7 @@ def prompt(name):
 
 @click.command()
 @click.argument('path')
-@click.option('--daemon', '-d', daemon)
+@click.option('--daemon', '-d')
 def main(path, daemon):
     videos, insufficient_name = scan_folder(path)
 
@@ -33,22 +30,18 @@ def main(path, daemon):
         moveHome(video)
 
     while len(insufficient_name) >= 1:
-        for file in insufficient_name:
+        for i, file in enumerate(insufficient_name):
             try:
                 manual_name = prompt(file)
                 
                 if manual_name is None:
-                    insufficient_name.pop()
+                    del insufficient_name[i]
                     continue
                 
-                try:
-                    video = Video.fromguess(file, guessit(manual_name))
-                    moveHome(video)
-                    insufficient_name.pop()
+                video = Video.fromguess(file, guessit(manual_name))
+                moveHome(video)
+                del insufficient_name[i]
 
-                except InsufficientNameError:
-                    continue 
-                    
             except KeyboardInterrupt:
                 # Logger: Received interrupt, exiting parser.
                 # should the class objects be deleted ?
