@@ -15,9 +15,9 @@ def tweet(video):
 def prompt(name):
     manual_name = input("Insufficient name: '{}'\nInput name manually: ".format(name)) 
 
-    if manual_name is 'q':
-        assert KeyboardInterrupt
-    if manual_name is 's':
+    if manual_name == 'q':
+        raise  KeyboardInterrupt
+    if manual_name == 's':
         return None
 
 
