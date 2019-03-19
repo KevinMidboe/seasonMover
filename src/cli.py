@@ -2,7 +2,7 @@
 import click
 from guessit import guessit
 
-from core import scan_folder, moveHome 
+from core import scan_folder
 from video import Video
 from exceptions import InsufficientNameError
 
@@ -20,14 +20,28 @@ def prompt(name):
 
     return manual_name
 
+def _moveHome(file):
+    print('- - -\nMatch: \t\t {}. \nDestination:\t {}'.format(file, file.wantedFilePath()))
+
 @click.command()
 @click.argument('path')
-@click.option('--daemon', '-d')
-def main(path, daemon):
+@click.option('--daemon', '-d', is_flag=True)
+@click.option('--dry', is_flag=True)
+def main(path, daemon, dry):
+    if dry:
+        def moveHome(file): _moveHome(file)
+    else:
+        from core import moveHome
+
+
     videos, insufficient_name = scan_folder(path)
 
     for video in videos:
         moveHome(video)
+
+    if daemon:
+        print('Exiting! Daemon flag set. Insufficient name for: ', insufficient_name)
+        exit(0)
 
     while len(insufficient_name) >= 1:
         for i, file in enumerate(insufficient_name):
