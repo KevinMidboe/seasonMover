@@ -3,7 +3,7 @@
 # @Author: KevinMidboe
 # @Date:   2017-08-25 23:22:27
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-29 12:35:24
+# @Last Modified time: 2019-02-02 01:04:25
 
 from guessit import guessit
 from babelfish import Language, LanguageReverseError
@@ -30,11 +30,12 @@ logger = logging.getLogger('seasonedParser')
 fh = logging.FileHandler(env.logfile)
 fh.setLevel(logging.INFO)
 sh = logging.StreamHandler()
-sh.setLevel(logging.ERROR)
+sh.setLevel(logging.WARNING)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-sh.setFormatter(formatter)
+fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+sh_formatter = logging.Formatter('%(levelname)s: %(message)s')
+fh.setFormatter(fh_formatter)
+sh.setFormatter(sh_formatter)
 
 logger.addHandler(fh)
 logger.addHandler(sh)
@@ -94,7 +95,7 @@ def scan_video(path):
     logger.info('Scanning video %r in %r', filename, dirpath)
 
     # guess
-    video = Video.fromguess(path, guessit(path))
+    video = Video.fromguess(path, guessit(filename))
 
     video.subtitles |= set(search_external_subtitles(video.name))
     refine(video)
