@@ -1,10 +1,13 @@
 #!usr/bin/env python3.6
 import click
 from guessit import guessit
+import logging
 
 from core import scan_folder
 from video import Video
 from exceptions import InsufficientNameError
+
+logger = logging.getLogger('seasonedParser')
 
 def tweet(video):
     pass
@@ -22,6 +25,7 @@ def prompt(name):
 
 def _moveHome(file):
     print('- - -\nMatch: \t\t {}. \nDestination:\t {}'.format(file, file.wantedFilePath()))
+    logger.info('- - -\nMatch: \t\t {}. \nDestination:\t {}'.format(file, file.wantedFilePath()))
 
 @click.command()
 @click.argument('path')
@@ -39,8 +43,8 @@ def main(path, daemon, dry):
     for video in videos:
         moveHome(video)
 
-    if daemon:
-        print('Exiting! Daemon flag set. Insufficient name for: ', insufficient_name)
+    if len(insufficient_name) and daemon:
+        logger.warning('Daemon flag set. Insufficient name for: %r', insufficient_name)
         exit(0)
 
     while len(insufficient_name) >= 1:
