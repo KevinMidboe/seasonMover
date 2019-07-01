@@ -169,7 +169,7 @@ class Episode(Video):
 
     @classmethod
     def fromname(cls, name):
-        return cls.fromguess(name, guessit(name, {'type': 'episode'}))
+        return cls.fromguess(name, guessit(name, {'type': 'episode', 'single_value': True }))
 
     def wantedFilePath(self):
         series = titlecase(self.series)
