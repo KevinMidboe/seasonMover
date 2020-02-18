@@ -32,6 +32,7 @@ steps:
   - py.test --cov-report=xml --cov=src test
   - apk add curl
   - apk add bash
+  - apk add git
   - bash -c "$(curl -s https://codecov.io/bash)"
 trigger:
   branch:
