@@ -30,7 +30,9 @@ steps:
   commands:
   - pip install -r requirements.txt
   - py.test --cov-report=xml --cov=src test
-  - bash <(curl -s https://codecov.io/bash)
+  - apk add curl
+  - apk add bash
+  - bash -c "$(curl -s https://codecov.io/bash)"
 trigger:
   branch:
   - master
