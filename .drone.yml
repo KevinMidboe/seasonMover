@@ -28,6 +28,7 @@ steps:
     CODECOV_TOKEN:
       from_secret: CODECOV_TOKEN
   commands:
+  - pip install -r requirements.txt
   - py.test --cov-report=xml --cov=src test
   - pip install codecov
   - codecov -t   
