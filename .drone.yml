@@ -31,7 +31,7 @@ steps:
   - pip install -r requirements.txt
   - py.test --cov-report=xml --cov=src test
   - pip install codecov
-  - codecov -t   
+  - codecov -t CODECOV_TOKEN
       
 trigger:
   branch:
