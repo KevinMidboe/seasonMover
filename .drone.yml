@@ -29,7 +29,7 @@ steps:
       from_secret: CODECOV_TOKEN
   commands:
   - pip install -r requirements.txt
-  - py.test --cov-report=xml --cov=seasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParser
+  - py.test --cov-report=xml --cov=seasonedParser
   - apk add git
   - apk add bash
   - apk add curl
