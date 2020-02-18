@@ -8,17 +8,19 @@ platform:
   arch: amd64
 
 steps:
-- name: install-python3.6
+- name: test-python3.6
   image: python:3.6-alpine
   commands:
     - python --version
     - pip install -r requirements.txt
+    - py.test test
 
-- name: install-python3.8
+- name: test-python3.8
   image: python:3.8-alpine
   commands:
     - python --version
     - pip install -r requirements.txt 
+    - py.test test
 
 trigger:
   branch:
