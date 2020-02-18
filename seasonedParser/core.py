@@ -10,7 +10,6 @@ from babelfish import Language, LanguageReverseError
 import hashlib
 import os, errno
 import shutil
-import logging
 import re
 import tvdb_api
 import click
@@ -20,25 +19,12 @@ import langdetect
 
 import env_variables as env
 from exceptions import InsufficientNameError
+import logging
+logger = logging.getLogger('seasonedParser')
 
 from video import VIDEO_EXTENSIONS, Episode, Movie, Video
 from subtitle import SUBTITLE_EXTENSIONS, Subtitle, get_subtitle_path
 from utils import sanitize, refine
-
-logging.basicConfig(filename=env.logfile, level=logging.INFO)
-logger = logging.getLogger('seasonedParser')
-fh = logging.FileHandler(env.logfile)
-fh.setLevel(logging.INFO)
-sh = logging.StreamHandler()
-sh.setLevel(logging.WARNING)
-
-fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-sh_formatter = logging.Formatter('%(levelname)s: %(message)s')
-fh.setFormatter(fh_formatter)
-sh.setFormatter(sh_formatter)
-
-logger.addHandler(fh)
-logger.addHandler(sh)
 
 def search_external_subtitles(path, directory=None):
     dirpath, filename = os.path.split(path)

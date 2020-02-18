@@ -13,14 +13,14 @@ steps:
   commands:
   - python --version
   - pip install -r requirements.txt
-  - py.test test
+  - py.test
 
 - name: test-python3.8
   image: python:3.8-alpine
   commands:
   - python --version
   - pip install -r requirements.txt 
-  - py.test test
+  - py.test
 
 - name: codecov
   image: python:3.6-alpine
@@ -29,9 +29,7 @@ steps:
       from_secret: CODECOV_TOKEN
   commands:
   - pip install -r requirements.txt
-  - py.test --cov-report=xml --cov=src test
-  - apk add curl
-  - apk add bash
+  - py.test --cov-report=xml --cov=seasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParser
   - apk add git
   - bash -c "$(curl -s https://codecov.io/bash)"
 trigger:
