@@ -11,22 +11,32 @@ steps:
 - name: test-python3.6
   image: python:3.6-alpine
   commands:
-    - python --version
-    - pip install -r requirements.txt
-    - py.test test
+  - python --version
+  - pip install -r requirements.txt
+  - py.test test
 
 - name: test-python3.8
   image: python:3.8-alpine
   commands:
-    - python --version
-    - pip install -r requirements.txt 
-    - py.test test
+  - python --version
+  - pip install -r requirements.txt 
+  - py.test test
 
+- name: codecov
+  image: python3:6-alpine
+  environment:
+    CODECOV_TOKEN:
+      from_secret: CODECOV_TOKEN
+  commands:
+  - py.test --cov-report=xml --cov=src test
+  - pip install codecov
+  - codecov -t   
+      
 trigger:
   branch:
-    - master
+  - master
   event:
     include:
-      - pull_request
-      - push 
+    - pull_request
+    - push 
 
