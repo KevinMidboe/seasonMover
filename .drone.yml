@@ -31,6 +31,8 @@ steps:
   - pip install -r requirements.txt
   - py.test --cov-report=xml --cov=seasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParserseasonedParser
   - apk add git
+  - apk add bash
+  - apk add curl
   - bash -c "$(curl -s https://codecov.io/bash)"
 trigger:
   branch:
