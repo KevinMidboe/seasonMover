@@ -1,6 +1,9 @@
 # seaonedParser
 seasoned Parser is python based parser that indexes a given directory for media files and identifies if it is a movie or show file and renames + moves it to a the correct place in library.
 
+[![codecov](https://codecov.io/gh/KevinMidboe/seasonedParser/branch/master/graph/badge.svg)](https://codecov.io/gh/KevinMidboe/seasonedParser)
+[![Build Status](https://drone.kevinmidboe.com/api/badges/KevinMidboe/seasonedParser/status.svg)](https://drone.kevinmidboe.com/KevinMidboe/seasonedParser)
+
 ## Table of Conents
 - [Config](#config)
 - [Setup for automation](#setup-for-automation)
