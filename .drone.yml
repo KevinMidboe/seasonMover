@@ -23,7 +23,7 @@ steps:
   - py.test test
 
 - name: codecov
-  image: python3:6-alpine
+  image: python:3.6-alpine
   environment:
     CODECOV_TOKEN:
       from_secret: CODECOV_TOKEN
