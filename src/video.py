@@ -3,16 +3,23 @@
 # @Author: KevinMidboe
 # @Date:   2017-08-26 08:23:18
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-09-29 13:56:21
+# @Last Modified time: 2018-05-13 20:50:00
 
 from guessit import guessit
 import os
+import logging
+from titlecase import titlecase
 import hashlib, tvdb_api
+
+import env_variables as env
+from exceptions import InsufficientNameError 
+
+logger = logging.getLogger('seasonedParser')
 
 #: Video extensions
 VIDEO_EXTENSIONS = ('.3g2', '.3gp', '.3gp2', '.3gpp', '.60d', '.ajp', '.asf', '.asx', '.avchd', '.avi', '.bik',
                     '.bix', '.box', '.cam', '.dat', '.divx', '.dmf', '.dv', '.dvr-ms', '.evo', '.flc', '.fli',
-                    '.flic', '.flv', '.flx', '.gvi', '.gvp', '.h264', '.m1v', '.m2p', '.m2ts', '.m2v', '.m4e',
+                    '.flic', '.flv', '.flx', '.gvi', '.gvp', '.h264', '.m1v', '.m2p', '.m2v', '.m4e',
                     '.m4v', '.mjp', '.mjpeg', '.mjpg', '.mkv', '.moov', '.mov', '.movhd', '.movie', '.movx', '.mp4',
                     '.mpe', '.mpeg', '.mpg', '.mpv', '.mpv2', '.mxf', '.nsv', '.nut', '.ogg', '.ogm' '.ogv', '.omf',
                     '.ps', '.qt', '.ram', '.rm', '.rmvb', '.swf', '.ts', '.vfw', '.vid', '.video', '.viv', '.vivo',
@@ -24,18 +31,22 @@ class Video(object):
     :param str name: name or path of the video.
     :param str format: format of the video (HDTV, WEB-DL, BluRay, ...).
     :param str release_group: release group of the video.
-    :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i).
+    :param str resolution: resolution of the video stream (480p, 720p, 1080p or 1080i, 4K).
     :param str video_codec: codec of the video stream.
     :param str audio_codec: codec of the main audio stream.
-    :param str imdb_id: IMDb id of the video.
-    :param dict hashes: hashes of the video file by provider names.
     :param int size: size of the video file in bytes.
-    :param set subtitle_languages: existing subtitle languages.
+    :param set subtitles: existing subtitle languages.
     """
-    def __init__(self, name, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
-                 imdb_id=None, hashes=None, size=None, subtitle_languages=None):
+    def __init__(self, name, hash=None, size=None, format=None, release_group=None, resolution=None, video_codec=None, audio_codec=None,
+                 subtitles=None, embeded_subtitles=None):
         #: Name or path of the video
         self.name = name
+
+        #: Hashes of the video file by provider names
+        self.hash = hash
+
+        #: Size of the video file in bytes
+        self.size = size
 
         #: Format of the video (HDTV, WEB-DL, BluRay, ...)
         self.format = format
@@ -52,17 +63,11 @@ class Video(object):
         #: Codec of the main audio stream
         self.audio_codec = audio_codec
 
-        #: IMDb id of the video
-        self.imdb_id = imdb_id
-
-        #: Hashes of the video file by provider names
-        self.hashes = hashes or {}
-
-        #: Size of the video file in bytes
-        self.size = size
-
         #: Existing subtitle languages
-        self.subtitle_languages = subtitle_languages or set()
+        self.subtitles = subtitles or set()
+
+        #: Embeded subtitle languages
+        self.embeded_subtitles = embeded_subtitles or set()
 
     @property
     def exists(self):
@@ -78,14 +83,14 @@ class Video(object):
         return timedelta()
 
     @classmethod
-    def fromguess(cls, name, parent_path, guess):
+    def fromguess(cls, name, guess):
         """Create an :class:`Episode` or a :class:`Movie` with the given `name` based on the `guess`.
         :param str name: name of the video.
         :param dict guess: guessed data.
         :raise: :class:`ValueError` if the `type` of the `guess` is invalid
         """
         if guess['type'] == 'episode':
-            return Episode.fromguess(name, parent_path, guess)
+            return Episode.fromguess(name, guess)
 
         if guess['type'] == 'movie':
             return Movie.fromguess(name, guess)
@@ -106,7 +111,7 @@ class Video(object):
         return hash(self.name)
 
 
-class Episode():
+class Episode(Video):
     """Episode :class:`Video`.
     :param str series: series of the episode.
     :param int season: season number of the episode.
@@ -117,14 +122,9 @@ class Episode():
     :param int tvdb_id: TVDB id of the episode.
     :param \*\*kwargs: additional parameters for the :class:`Video` constructor.
     """
-    def __init__(self, name, parent_path, series, season, episode, year=None, original_series=True, tvdb_id=None,
-                 series_tvdb_id=None, series_imdb_id=None, release_group=None, video_codec=None, container=None,
-                 format=None, screen_size=None, **kwargs):
-        super(Episode, self).__init__()
-
-        self.name = name
-
-        self.parent_path = parent_path
+    def __init__(self, name, series, season, episode, title=None, year=None, original_series=True, tvdb_id=None,
+                 series_tvdb_id=None, **kwargs):
+        super(Episode, self).__init__(name, **kwargs)
 
         #: Series of the episode
         self.series = series
@@ -134,6 +134,9 @@ class Episode():
 
         #: Episode number of the episode
         self.episode = episode
+
+        #: Title of the episode
+        self.title = title
 
         #: Year of series
         self.year = year
@@ -147,84 +150,86 @@ class Episode():
         #: TVDB id of the series
         self.series_tvdb_id = series_tvdb_id
 
-        #: IMDb id of the series
-        self.series_imdb_id = series_imdb_id
-
-        # The release group of the episode
-        self.release_group = release_group
-
-        # The video vodec of the series
-        self.video_codec = video_codec
-
-        # The Video container of the episode
-        self.container = container
-        
-        # The Video format of the episode
-        self.format = format
-
-        # The Video screen_size of the episode
-        self.screen_size = screen_size
-
     @classmethod
-    def fromguess(cls, name, parent_path, guess):
+    def fromguess(cls, name, guess):
+        logger.info('Guess: {}'.format(guess))
         if guess['type'] != 'episode':
             raise ValueError('The guess must be an episode guess')
 
-        if 'title' not in guess or 'episode' not in guess:
-            raise ValueError('Insufficient data to process the guess')
+        if 'title' not in guess or 'season' not in guess or 'episode' not in guess:
+            raise InsufficientNameError('Guess failed to have sufficient data from query: {}'.format(name))
 
-        return cls(name, parent_path, guess['title'], guess.get('season', 1), guess['episode'],
-                   year=guess.get('year'), original_series='year' not in guess, release_group=guess.get('release_group'), 
-                   video_codec=guess.get('video_codec'), audio_codec=guess.get('audio_codec'), container=guess.get('container'),
-                   format=guess.get('format'), screen_size=guess.get('screen_size'))
+        if any([isinstance(x, list) for x in [guess['title'], guess['season'], guess['episode']]]):
+            raise InsufficientNameError('Guess could not be parsed, list values found.')
+
+        return cls(name, guess['title'], guess.get('season', 1), guess['episode'], title=guess.get('episode_title'),
+                   year=guess.get('year'), format=guess.get('format'), original_series='year' not in guess,
+                   release_group=guess.get('release_group'), resolution=guess.get('screen_size'),
+                   video_codec=guess.get('video_codec'), audio_codec=guess.get('audio_codec'))
 
     @classmethod
     def fromname(cls, name):
-        return cls.fromguess(name, guessit(name, {'type': 'episode'}))
+        return cls.fromguess(name, guessit(name, {'type': 'episode', 'single_value': True }))
 
-    def __hash__(self):
-         return hashlib.md5("b'{}'".format(str(self.series) + str(self.season) + str(self.episode)).encode()).hexdigest()
+    def wantedFilePath(self):
+        series = titlecase(self.series)
+        grandParent = '{}/{} Season {:02d}'.format(series, series, self.season)
+        parent = '{} S{:02d}E{:02d}'.format(series, self.season, self.episode)
+        return os.path.join(env.SHOWBASE, grandParent, parent, os.path.basename(self.name))
 
-    # THE EP NUMBER IS CONVERTED TO STRING AS A QUICK FIX FOR MULTIPLE NUMBERS IN ONE
     def __repr__(self):
-        if self.year is None:
-            return '<%s [%r, %sx%s]>' % (self.__class__.__name__, self.series, self.season, str(self.episode))
+        if self.subtitles is not None and len(self.subtitles) > 0:
+            return '<%s [%r, %dx%s] %s>' % (self.__class__.__name__, self.series, self.season, self.episode, self.subtitles)
+        return '<%s [%r, %dx%d]>' % (self.__class__.__name__, self.series, self.season, self.episode)
 
-        return '<%s [%r, %d, %sx%s]>' % (self.__class__.__name__, self.series, self.year, self.season, str(self.episode))
-
-		
-
-class Movie():
+class Movie(Video):
     """Movie :class:`Video`.
     :param str title: title of the movie.
     :param int year: year of the movie.
     :param \*\*kwargs: additional parameters for the :class:`Video` constructor.
     """
-    def __init__(self, name, title, year=None, format=None, **kwargs):
-        super(Movie, self).__init__()
+    def __init__(self, name, title, year=None, **kwargs):
+        super(Movie, self).__init__(name, **kwargs)
 
         #: Title of the movie
         self.title = title
 
         #: Year of the movie
         self.year = year
-        self.format = format
 
     @classmethod
     def fromguess(cls, name, guess):
         if guess['type'] != 'movie':
             raise ValueError('The guess must be a movie guess')
 
-        if 'title' not in guess:
-            raise ValueError('Insufficient data to process the guess')
+        if 'title' not in guess or 'year' not in guess:
+            raise InsufficientNameError('Guess failed to have sufficient data from query: {}'.format(name))
 
         return cls(name, guess['title'], format=guess.get('format'), release_group=guess.get('release_group'),
                    resolution=guess.get('screen_size'), video_codec=guess.get('video_codec'),
                    audio_codec=guess.get('audio_codec'), year=guess.get('year'))
 
     @classmethod
-    def fromname(cls, name):
+    def fromname(cls, name, year):
         return cls.fromguess(name, guessit(name, {'type': 'movie'}))
+
+    def sufficientInfo(self):
+        t = hasattr(self, "title")
+        y = hasattr(self, "year")
+
+        if False in [t, y] or  None in [self.title, self.year]:
+            logger.error('{} or {} found to have none value, manual correction required'.format(self.title, self.year))
+            return False
+        if list in [type(self.title), type(self.year)]:
+            logger.error('{} or {} found to have list value, manual correction required'.format(self.title, self.year))
+            return False
+
+        return True
+ 
+    def wantedFilePath(self):
+        title = titlecase(self.title)
+        parent = '{} ({})'.format(title, self.year)
+        return os.path.join(env.MOVIEBASE, parent, os.path.basename(self.name))
 
     def __repr__(self):
         if self.year is None:

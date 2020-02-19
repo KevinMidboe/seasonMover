@@ -3,7 +3,7 @@
 # @Author: KevinMidboe
 # @Date:   2017-10-12 11:55:03
 # @Last Modified by:   KevinMidboe
-# @Last Modified time: 2017-10-17 00:58:24
+# @Last Modified time: 2017-11-01 16:11:30
 
 import sys, logging, re
 from urllib import parse, request
@@ -26,39 +26,6 @@ RELEASE_TYPES = ('bdremux', 'brremux', 'remux',
 	'dvdr', 'dvd-full', 'full-rip', 'iso',
 	'ts', 'hdts', 'hdts', 'telesync', 'pdvd', 'predvdrip',
 	'camrip', 'cam')
-
-
-def sanitize(string, ignore_characters=None, replace_characters=None):
-	"""Sanitize a string to strip special characters.
-
-	:param str string: the string to sanitize.
-	:param set ignore_characters: characters to ignore.
-	:return: the sanitized string.
-	:rtype: str
-
-	"""
-	# only deal with strings
-	if string is None:
-		return
-	
-	replace_characters = replace_characters or ''
-
-	ignore_characters = ignore_characters or set()
-
-	characters = ignore_characters
-	if characters:
-		string = re.sub(r'[%s]' % re.escape(''.join(characters)), replace_characters, string)
-
-	return string
-
-def return_re_match(string, re_statement):
-	if string is None:
-		return
-
-	m = re.search(re_statement, string)
-	if 'Y-day' in m.group():
-		return datetime.datetime.now().strftime('%m-%d %Y')
-	return sanitize(m.group(), '\xa0', ' ')
 
 
 # Should maybe not be able to set values without checking if they are valid?
@@ -157,7 +124,7 @@ class piratebay(object):
 		print(self.page)
 		
 		# Fetch in parallel
-		n = self.total_pages
+		n = pagesToCount(multiple_pages, self.total_pages)
 		while n > 1:
 			torrents_found.extend(self.next_page())
 			n -= 1
@@ -276,7 +243,7 @@ def chooseCandidate(torrent_list):
 
 		size, _, size_id = torrent.size.partition(' ')
 		if intersecting_release_types and int(torrent.seed_count) > 0 and float(size) > 4 and size_id == 'GiB':
-			print('{} : {} : {}'.format(torrent.name, torrent.size, torrent.seed_count))
+			print('{} : {} : {} {}'.format(torrent.name, torrent.size, torrent.seed_count, torrent.magnet))
 			interesting_torrents.append(torrent)
 		# else:
 		# 	print('Denied match! %s : %s : %s' % (torrent.name, torrent.size, torrent.seed_count))
@@ -286,10 +253,11 @@ def chooseCandidate(torrent_list):
 
 def searchTorrentSite(query, site='piratebay'):
 	pirate = piratebay()
-	torrents_found = pirate.search(query, page=0, multiple_pages=0, sort='size')
-	# pprint(torrents_found)
+	torrents_found = pirate.search(query, page=0, multiple_pages=5, sort='size')
+	pprint(torrents_found)
 	candidates = chooseCandidate(torrents_found)
-
+	pprint(candidates)
+	exit(0)
 	torrents_found = pirate.search(query, page=0, multiple_pages=0, sort='size', category='movies')
 	movie_candidates = chooseCandidate(torrents_found)
 

@@ -1,0 +1,44 @@
+---
+kind: pipeline
+type: docker
+name: seasonedParser
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: test-python3.6
+  image: python:3.6-alpine
+  commands:
+  - python --version
+  - pip install -r requirements.txt
+  - py.test
+
+- name: test-python3.8
+  image: python:3.8-alpine
+  commands:
+  - python --version
+  - pip install -r requirements.txt 
+  - py.test
+
+- name: codecov
+  image: python:3.6-alpine
+  environment:
+    CODECOV_TOKEN:
+      from_secret: CODECOV_TOKEN
+  commands:
+  - pip install -r requirements.txt
+  - py.test --cov-report=xml --cov=seasonedParser
+  - apk add git
+  - apk add bash
+  - apk add curl
+  - bash -c "$(curl -s https://codecov.io/bash)"
+trigger:
+  branch:
+  - master
+  event:
+    include:
+    - pull_request
+    - push 
+
