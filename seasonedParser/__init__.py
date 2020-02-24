@@ -1,7 +1,8 @@
-print('hello from init')
-import sys,os
-# sys.path.append(os.path.join(os.path.dirname(__file__),os.pardir))
+# -*- coding: utf-8 -*-
+"""
+    seasonedParser.__init__
 
-# from 
+    Set module settings.
+"""
 
 from .__version__ import __version__
