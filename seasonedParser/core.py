@@ -17,7 +17,6 @@ from pprint import pprint
 from titlecase import titlecase
 import langdetect
 
-import env_variables as env
 from exceptions import InsufficientNameError
 import logging
 logger = logging.getLogger('seasonedParser')
